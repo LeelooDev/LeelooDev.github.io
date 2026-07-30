@@ -136,6 +136,10 @@ export const PROFILE: Record<ProfileLocale, Profile> = {
 }
 
 export const SETTINGS: SiteSettings = ${JSON.stringify(settings, null, 2)}
+
+/** 构建当天（UTC）。归档页的热力图以此为终点——用 new Date() 的话预渲染时刻和访问时刻
+ *  不是同一天就会 hydration 失败。 */
+export const BUILD_DATE = ${JSON.stringify(new Date().toISOString().slice(0, 10))}
 `
 
 writeFileSync(OUT, source)

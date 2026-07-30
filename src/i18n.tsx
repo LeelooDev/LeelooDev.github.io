@@ -181,7 +181,9 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     t: (key) => MESSAGES[key][lang],
     categoryLabel: (category) => CATEGORY_NAMES[category]?.[lang] ?? category,
     formatDate: (value) =>
-      new Intl.DateTimeFormat(lang === 'zh' ? 'zh-CN' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+      // 固定 UTC：文章的发布日期是一个日历日，不该随读者所在时区变成前后一天。
+      // 预渲染在 UTC 机器上跑，不固定的话服务端和浏览器会渲染出不同的日期文本（hydration 失败）。
+      new Intl.DateTimeFormat(lang === 'zh' ? 'zh-CN' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })
         .format(new Date(value)),
     minutes: (count) => (lang === 'zh' ? `${count} 分钟` : `${count} min`),
     minutesRead: (count) => (lang === 'zh' ? `${count} 分钟阅读` : `${count} min read`),

@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { ArchiveSkeleton } from '../components/Skeleton'
 import { useI18n, type Lang } from '../i18n'
 import { postDate, readingMinutes, usePosts } from '../lib'
+import { BUILD_DATE } from '../content'
 
 export function ArchivePage() {
   const { lang, t, categoryLabel, minutes, articleCount } = useI18n()
@@ -13,11 +14,11 @@ export function ArchivePage() {
   const stats = useMemo(() => {
     const totalMinutes = items.reduce((total, post) => total + readingMinutes(post), 0)
     const categories = new Set(items.map((post) => post.category))
-    const years = new Set(items.map((post) => new Date(postDate(post)).getFullYear()))
+    const years = new Set(items.map((post) => new Date(postDate(post)).getUTCFullYear()))
     return { posts: items.length, minutes: totalMinutes, categories: categories.size, years: years.size }
   }, [items])
 
-  const heatCells = useMemo(() => buildHeatmap(items), [items])
+  const heatCells = useMemo(() => buildHeatmap(items, BUILD_DATE), [items])
   const yearGroups = useMemo(() => groupByYearMonth(items, lang), [items, lang])
   const tagCloud = useMemo(() => {
     const counts = new Map<string, number>()
@@ -115,17 +116,19 @@ export function ArchivePage() {
   )
 }
 
-function buildHeatmap(items: Post[]) {
+// 下面所有日期一律按 UTC 取值。预渲染跑在 UTC 机器上，浏览器却在读者本地时区，
+// 用 getMonth()/getDate() 这类本地方法会让两边渲染出不同的文本，hydration 就失败了。
+function buildHeatmap(items: Post[], endDate: string) {
   const counts = new Map<string, number>()
   items.forEach((post) => {
     const key = new Date(postDate(post)).toISOString().slice(0, 10)
     counts.set(key, (counts.get(key) ?? 0) + 1)
   })
-  const today = new Date()
+  const end = new Date(`${endDate}T00:00:00Z`)
   const cells: number[] = []
   for (let offset = 363; offset >= 0; offset -= 1) {
-    const day = new Date(today)
-    day.setDate(day.getDate() - offset)
+    const day = new Date(end)
+    day.setUTCDate(day.getUTCDate() - offset)
     const count = counts.get(day.toISOString().slice(0, 10)) ?? 0
     cells.push(count === 0 ? 0.08 : Math.min(1, 0.45 + (count - 1) * 0.3))
   }
@@ -134,12 +137,12 @@ function buildHeatmap(items: Post[]) {
 
 function groupByYearMonth(items: Post[], lang: Lang) {
   const monthLabel = (date: Date) => (lang === 'zh'
-    ? `${date.getMonth() + 1} 月`
-    : new Intl.DateTimeFormat('en-US', { month: 'long' }).format(date))
+    ? `${date.getUTCMonth() + 1} 月`
+    : new Intl.DateTimeFormat('en-US', { month: 'long', timeZone: 'UTC' }).format(date))
   const years: { year: number; count: number; months: { name: string; items: Post[] }[] }[] = []
   for (const post of items) {
     const date = new Date(postDate(post))
-    const yearValue = date.getFullYear()
+    const yearValue = date.getUTCFullYear()
     const monthName = monthLabel(date)
     let year = years.find((entry) => entry.year === yearValue)
     if (!year) {
@@ -160,5 +163,5 @@ function groupByYearMonth(items: Post[], lang: Lang) {
 
 function shortDate(value: string) {
   const date = new Date(value)
-  return `${date.getMonth() + 1}/${date.getDate()}`
+  return `${date.getUTCMonth() + 1}/${date.getUTCDate()}`
 }
