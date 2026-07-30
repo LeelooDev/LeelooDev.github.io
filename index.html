@@ -3,32 +3,25 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MacOazo Blog</title>
-    <style>
-      body {
-        margin: 0;
-        min-height: 100vh;
-        display: grid;
-        place-items: center;
-        background: #111;
-        color: #fff;
-        font-family: system-ui, sans-serif;
-      }
-
-      main {
-        text-align: center;
-        padding: 32px;
-      }
-
-      p {
-        color: #aaa;
-      }
-    </style>
+    <title>MacOazo</title>
+    <meta name="description" content="记录设计、代码、阅读和生活。" />
+    <!-- 字体自托管在 /fonts 下，不依赖 Google Fonts CDN。 -->
+    <link rel="stylesheet" href="/fonts/fonts.css" />
+    <!--app-head-->
   </head>
   <body>
-    <main>
-      <h1>MacOazo Blog</h1>
-      <p>GitHub Pages 已经配置成功。</p>
-    </main>
+    <script>
+      // 在 hydrate 之前落主题，避免深色/浅色闪一下。
+      // 深色是 :root 的默认值，所以只有浅色需要显式打标记。
+      try {
+        if (localStorage.getItem('macoazo-theme') === 'light') {
+          document.body.dataset.theme = 'light'
+        }
+      } catch (e) {
+        /* 隐私模式下 localStorage 不可用，保持默认深色即可 */
+      }
+    </script>
+    <div id="root"><!--app-html--></div>
+    <script type="module" src="/src/entry-client.tsx"></script>
   </body>
 </html>

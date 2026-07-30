@@ -1,0 +1,80 @@
+{
+  "location": "Shanghai · Remote-friendly",
+  "headline": "An engineer at the intersection of medicine and code.",
+  "bio": "Since 2017 I have been building software that doctors and patients actually use: Bluetooth hardware detection, online consultations, imaging viewers and MDT collaboration, covering the full mobile delivery chain from auth, messaging and APNs push to audio/video calls, realtime WebSocket collaboration and App Store releases.\nOn the medical imaging side I work across DICOM retrieval, report viewing, prior-study comparison and MPR / 3D / AI analysis workflows — from the web viewer and iOS client all the way to Go / React full-stack services. In the last two years I have folded Claude Code, Cursor, AI agents and a personal knowledge base into my daily engineering loop.",
+  "philosophy": "“Tools for doctors should be fast, honest and quiet. Speed earns trust; honesty about uncertainty keeps it.”",
+  "experience": [
+    {
+      "org": "Medical technology company",
+      "role": "Imaging Platform Full-stack Engineer",
+      "period": "2023 — Present",
+      "description": "Own the medical imaging viewer and realtime collaboration backend, across web viewer, iOS client and Go services."
+    },
+    {
+      "org": "Digital health company",
+      "role": "Senior iOS Engineer",
+      "period": "2019 — 2023",
+      "description": "Shipped core modules of online consultation, clinician assistant and MDT collaboration apps."
+    },
+    {
+      "org": "Smart hardware team",
+      "role": "iOS Engineer",
+      "period": "2017 — 2019",
+      "description": "Started with a Bluetooth formaldehyde-detection app, wiring hardware, BLE transport and data parsing to the mobile UI."
+    }
+  ],
+  "education": [],
+  "certificates": [],
+  "openSource": [],
+  "awards": [],
+  "facts": [],
+  "now": {
+    "updatedAt": "2026-07-07",
+    "sections": [
+      {
+        "label": "BUILDING",
+        "items": [
+          {
+            "title": "MacOazo personal platform",
+            "note": "This very site — a Go + React split stack, currently polishing the bilingual experience and the AI digital twin."
+          },
+          {
+            "title": "Imaging collaboration backend",
+            "note": "A Go service bringing realtime collaboration to a medical imaging viewer, built on the actor model and evolving toward multi-instance scaling."
+          }
+        ]
+      },
+      {
+        "label": "LEARNING",
+        "items": [
+          {
+            "title": "AI agent engineering",
+            "note": "From prompts to workflow orchestration — distilling Claude Code practices into a reusable skill library."
+          },
+          {
+            "title": "WebGPU",
+            "note": "Watching what it could unlock for in-browser medical imaging rendering."
+          }
+        ]
+      },
+      {
+        "label": "READING",
+        "items": [
+          {
+            "title": "Thinking in Systems",
+            "note": "Re-examining the feedback loops in engineering and product through a systems lens."
+          }
+        ]
+      },
+      {
+        "label": "LISTENING",
+        "items": [
+          {
+            "title": "Tech podcasts",
+            "note": "Commute-time entertainment — currently catching up on AI engineering shows."
+          }
+        ]
+      }
+    ]
+  }
+}

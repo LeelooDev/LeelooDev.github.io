@@ -1,0 +1,10 @@
+node_modules/
+dist/
+dist-ssr/
+# 构建时由 scripts/build-content.mjs 从 content/ 生成
+src/content.ts
+*.tsbuildinfo
+*.log
+.env
+.env.local
+.DS_Store
