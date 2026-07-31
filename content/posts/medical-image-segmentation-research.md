@@ -1,11 +1,11 @@
 ---
 title: 医学影像智能分割研究
 date: 2026-07-30
-group: 医学影像
-groupOrder: 3
-noteOrder: 4
-cover: /images/note-medical-image-segmentation-cover.jpg
+category: code
+tags: [医学影像, 图像分割, SAM, ONNX Runtime, WebGPU, 浏览器端推理]
+cover: /images/medical-image-segmentation-research-cover.jpg
 coverAlt: 医学影像智能分割研究工作台
+excerpt: 把 SAM 的 ONNX 版本整个放进浏览器，用 WebGPU 跑完编码-解码全流程，影像不出工作站。这篇按论文体例拆解它的三级缓存层次、窗宽窗位敏感的缓存键，以及一个能回答「AI 辅助到底有没有更快」的交互经济性模型——接受率阈值约 9.8%。
 ---
 
 > 本文按 IEEE TMI / Medical Image Analysis 的原创研究论文体例撰写：Abstract、Index Terms、编号章节、图表编号、参考文献表齐备。研究对象是一套已落地的浏览器端医学影像智能分割系统，讨论的是它的架构、代价模型与工程边界。
