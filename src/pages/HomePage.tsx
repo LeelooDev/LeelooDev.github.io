@@ -148,11 +148,22 @@ function Hero({ profile }: { profile: Profile }) {
             ) : null}
           </div>
         </div>
-        {profile.avatarUrl ? (
-          <div className="hero-portrait">
-            <img src={profile.avatarUrl} alt={profile.name} />
-          </div>
-        ) : null}
+        {/* 插画深浅各备一张，底色分别贴着两种主题的背景走。说明文字挂在容器上，
+            两张图对读屏器隐藏，否则同一幅画会被念两遍。 */}
+        <div className="hero-portrait" role="img" aria-label={t('heroArtworkAlt')}>
+          <img
+            className="hero-art hero-art-dark"
+            src="/images/hero-editorial-character-dark.jpg"
+            alt=""
+            aria-hidden="true"
+          />
+          <img
+            className="hero-art hero-art-light"
+            src="/images/hero-editorial-character.jpg"
+            alt=""
+            aria-hidden="true"
+          />
+        </div>
       </div>
     </div>
   )

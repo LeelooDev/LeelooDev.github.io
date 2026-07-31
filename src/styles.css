@@ -175,8 +175,19 @@ button { font-family: inherit; }
   display: flex; align-items: center; flex-wrap: wrap; gap: 12px;
   animation: fadeUp 0.5s 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-.hero-portrait { flex: none; animation: fadeUp 0.55s 0.22s cubic-bezier(0.22, 1, 0.36, 1) both; }
-.hero-portrait img { width: 210px; height: 252px; object-fit: cover; border-radius: 14px; border: 1px solid var(--border); }
+/* 右侧插画：两版底色本来就贴着各自主题的背景走（深色 9~14 对 10，浅色纸白 250,249,244
+   对 250,250,250），所以不套边框直接放，看起来像画在页面上而不是贴了张图。
+   也别加 multiply——纸白底混合后反而被压暗到 245,244,239，边界比不加时更明显。 */
+.hero-portrait {
+  /* 宽度必须写死在容器上。写成 min(100%, 300px) 的话，flex 计算固有宽度时解析不了
+     这个百分比，会回退到图片自身的宽度，把整行撑爆、插画被挤到文案下面去。 */
+  flex: none; width: 300px; position: relative; z-index: 1;
+  animation: fadeUp 0.55s 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.hero-art { width: 100%; height: auto; }
+.hero-art-light { display: none; }
+body[data-theme='light'] .hero-art-dark { display: none; }
+body[data-theme='light'] .hero-art-light { display: block; }
 
 .btn-primary {
   display: inline-block; padding: 9px 18px; background: var(--btnBg); color: var(--btnText);
