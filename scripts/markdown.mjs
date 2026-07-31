@@ -14,13 +14,19 @@ import { visit } from 'unist-util-visit'
 // 正文是手写 Markdown，里面嵌了内联 SVG 图表。rehype-raw 把原始 HTML 变成节点，
 // rehype-sanitize 再剥掉危险内容（script、事件属性、坏协议），同时放行图表依赖的
 // SVG 元素与展示属性。
+//
+// 注意：这里写的是 hast 规范化后的 property 名，不是 Markdown 里的连字符写法。
+// property-information 对多段连字符属性的驼峰化是逐段首字母大写的，
+// 所以 stroke-dasharray → strokeDashArray（不是 strokeDasharray）。拼错不会报错，
+// 只会让该属性被静默剥掉——虚线变实线就是这么来的。
 const SVG_TAGS = [
   'svg', 'g', 'path', 'rect', 'line', 'circle', 'ellipse', 'polyline',
   'polygon', 'text', 'tspan', 'defs', 'marker', 'use', 'symbol', 'title', 'desc',
 ]
 const SVG_ATTRS = [
   'viewBox', 'xmlns', 'width', 'height', 'fill', 'fillOpacity', 'fillRule',
-  'stroke', 'strokeWidth', 'strokeDasharray', 'strokeLinecap', 'strokeLinejoin',
+  'stroke', 'strokeWidth', 'strokeDashArray', 'strokeDashOffset',
+  'strokeLineCap', 'strokeLineJoin', 'strokeMiterLimit',
   'strokeOpacity', 'opacity', 'd', 'points', 'x', 'y', 'x1', 'y1', 'x2', 'y2',
   'cx', 'cy', 'r', 'rx', 'ry', 'dx', 'dy', 'transform', 'textAnchor',
   'fontSize', 'fontWeight', 'fontFamily', 'fontStyle', 'markerEnd', 'markerStart',
@@ -30,6 +36,10 @@ const SVG_ATTRS = [
 
 const contentSchema = {
   ...defaultSchema,
+  // 默认会给 id 加 user-content- 前缀防 DOM clobbering，但只改 id、不改 url(#id) 引用，
+  // SVG 的 marker-end="url(#arrow)" 因此全部指空，箭头不显示。正文是仓库里手写的
+  // Markdown 而非第三方投稿，clobbering 风险不存在，直接关掉前缀。
+  clobberPrefix: '',
   tagNames: [...(defaultSchema.tagNames ?? []), ...SVG_TAGS, 'figure', 'figcaption'],
   attributes: {
     ...defaultSchema.attributes,

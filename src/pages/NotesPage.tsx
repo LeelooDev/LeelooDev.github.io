@@ -102,22 +102,26 @@ export function NotesPage() {
         <article className="note-reader">
           <header className="note-reader-head">
             <h1>{note.title}</h1>
-            <div className="note-reader-meta">
-              <time dateTime={note.date}>{formatDate(note.date)}</time>
-              <span>·</span>
-              <span>{minutesRead(note.readingMinutes)}</span>
-            </div>
+            {note.html ? (
+              <div className="note-reader-meta">
+                <time dateTime={note.date}>{formatDate(note.date)}</time>
+                <span>·</span>
+                <span>{minutesRead(note.readingMinutes)}</span>
+              </div>
+            ) : null}
           </header>
 
           {note.coverUrl ? (
             <img className="note-reader-cover" src={note.coverUrl} alt={note.coverAlt} />
           ) : null}
 
-          <div
-            className="article-content note-reader-content"
-            ref={contentRef}
-            dangerouslySetInnerHTML={{ __html: note.html }}
-          />
+          {note.html ? (
+            <div
+              className="article-content note-reader-content"
+              ref={contentRef}
+              dangerouslySetInnerHTML={{ __html: note.html }}
+            />
+          ) : null}
         </article>
       </div>
     </div>
