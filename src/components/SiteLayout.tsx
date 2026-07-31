@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { Menu, Search, X } from 'lucide-react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useI18n, type MessageKey } from '../i18n'
-import { readingMinutes, useProfile, usePosts, useSiteSettings } from '../lib'
+import { readingMinutes, useNotes, useProfile, usePosts, useSiteSettings } from '../lib'
 import { pageMeta } from '../meta'
 
 const NAV_ITEMS: { to: string; key: MessageKey; end?: boolean }[] = [
@@ -9,7 +10,7 @@ const NAV_ITEMS: { to: string; key: MessageKey; end?: boolean }[] = [
   { to: '/articles', key: 'navArticles' },
   { to: '/projects', key: 'navProjects' },
   { to: '/archive', key: 'navArchive' },
-  { to: '/now', key: 'navNow' },
+  { to: '/notes', key: 'navNotes' },
   { to: '/about', key: 'navAbout' },
 ]
 
@@ -25,9 +26,10 @@ export function SiteLayout() {
   const [theme, setTheme] = useState<Theme>('dark')
   const restoredTheme = useRef(false)
   const [searchOpen, setSearchOpen] = useState(false)
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
 
   const siteName = settings.data?.siteName ?? 'MacOazo'
-  const description = settings.data?.siteDescription ?? '记录支撑创作的小系统，也记录系统之外的生活。'
+  const description = t('siteDescription')
   const contactEmail = settings.data?.contactEmail ?? 'tiantiancoolcool@gmail.com'
 
   // 标题走和预渲染同一份 pageMeta，客户端导航后才不会退化成站点名。
@@ -37,6 +39,10 @@ export function SiteLayout() {
     robots.setAttribute('name', 'robots')
     robots.setAttribute('content', settings.data?.allowIndexing === false ? 'noindex,nofollow' : 'index,follow')
   }, [pathname, lang, settings.data?.allowIndexing])
+
+  useEffect(() => {
+    setMobileNavOpen(false)
+  }, [pathname])
 
   useEffect(() => {
     if (localStorage.getItem('macoazo-theme') === 'light') setTheme('light')
@@ -68,17 +74,33 @@ export function SiteLayout() {
     <>
       <header className="site-nav">
         <div className="site-nav-inner">
+          <button
+            className="mobile-menu-btn"
+            aria-label={mobileNavOpen ? t('closeMenu') : t('openMenu')}
+            aria-expanded={mobileNavOpen}
+            onClick={() => setMobileNavOpen((open) => !open)}
+          >
+            {mobileNavOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
+          </button>
           <NavLink className="brand" to="/">
             <span className="brand-mark">{siteName[0] ?? 'M'}</span>
             <span className="brand-name">{siteName}</span>
           </NavLink>
-          <nav className="nav-links" aria-label={t('mainNav')}>
+          <nav className={`nav-links${mobileNavOpen ? ' is-open' : ''}`} aria-label={t('mainNav')}>
             {NAV_ITEMS.map(({ to, key, end }) => (
               <NavLink key={to} to={to} end={end}>{t(key)}</NavLink>
             ))}
           </nav>
           <div className="nav-actions">
-            <button className="search-btn" onClick={() => setSearchOpen(true)}>
+            <button
+              className="search-btn"
+              aria-label={t('search')}
+              onClick={() => {
+                setMobileNavOpen(false)
+                setSearchOpen(true)
+              }}
+            >
+              <Search className="search-icon" aria-hidden="true" />
               <span>{t('search')}</span>
               <kbd>⌘K</kbd>
             </button>
@@ -151,6 +173,7 @@ function SearchOverlay({ onClose }: { onClose: () => void }) {
   const { t, categoryLabel, minutes } = useI18n()
   const [query, setQuery] = useState('')
   const posts = usePosts()
+  const notes = useNotes()
   const profile = useProfile()
   const navigate = useNavigate()
   const inputRef = useRef<HTMLInputElement>(null)
@@ -164,6 +187,7 @@ function SearchOverlay({ onClose }: { onClose: () => void }) {
     const keyword = query.trim().toLowerCase()
     const allPosts = posts.data?.items ?? []
     const projects = profile.data?.projects ?? []
+    const allNotes = notes.data ?? []
     const postMatches = (keyword
       ? allPosts.filter((post) =>
           `${post.title} ${post.category} ${post.tags.join(' ')}`.toLowerCase().includes(keyword))
@@ -185,8 +209,18 @@ function SearchOverlay({ onClose }: { onClose: () => void }) {
       meta: project.role,
       go: () => navigate('/projects'),
     }))
-    return [...postMatches, ...projectMatches]
-  }, [query, posts.data, profile.data, navigate, t, categoryLabel, minutes])
+    const noteMatches = (keyword
+      ? allNotes.filter((note) => `${note.title} ${note.group}`.toLowerCase().includes(keyword))
+      : allNotes.slice(0, 2)
+    ).slice(0, 4).map((note) => ({
+      key: `note-${note.slug}`,
+      type: t('typeNote'),
+      title: note.title,
+      meta: `${note.group} · ${minutes(note.readingMinutes)}`,
+      go: () => navigate(`/notes/${note.slug}`),
+    }))
+    return [...postMatches, ...projectMatches, ...noteMatches]
+  }, [query, posts.data, profile.data, notes.data, navigate, t, categoryLabel, minutes])
 
   const open = (go: () => void) => {
     go()

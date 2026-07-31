@@ -1,7 +1,7 @@
 // 每个路由的 <title> / description / og:image 单一事实源。
 // 预渲染脚本用它把标签写进静态 HTML，SiteLayout 在客户端导航时用同一份逻辑更新
 // document.title——两边必须一致，否则 hydrate 后会把预渲染写好的标题覆盖掉。
-import { POSTS, PROFILE, SETTINGS } from './content'
+import { NOTES, POSTS, PROFILE, SETTINGS } from './content'
 import type { ProfileLocale } from './types'
 
 export interface PageMeta {
@@ -15,7 +15,7 @@ const SECTION_TITLES: Record<string, { zh: string; en: string }> = {
   '/articles': { zh: '文章', en: 'Articles' },
   '/projects': { zh: '项目', en: 'Projects' },
   '/archive': { zh: '归档', en: 'Archive' },
-  '/now': { zh: '此刻', en: 'Now' },
+  '/notes': { zh: '笔记', en: 'Notes' },
   '/about': { zh: '关于', en: 'About' },
   '/404': { zh: '页面不存在', en: 'Page not found' },
 }
@@ -33,7 +33,10 @@ function truncate(text: string, limit = 160) {
 export function pageMeta(pathname: string, lang: ProfileLocale = 'zh'): PageMeta {
   const path = normalize(pathname)
   const site = SETTINGS.siteName
-  const fallback: PageMeta = { title: site, description: SETTINGS.siteDescription, image: '' }
+  const siteDescription = lang === 'zh'
+    ? SETTINGS.siteDescription
+    : 'Notes on design, code, reading, and life.'
+  const fallback: PageMeta = { title: site, description: siteDescription, image: '' }
 
   if (path === '/') return fallback
 
@@ -61,6 +64,17 @@ export function pageMeta(pathname: string, lang: ProfileLocale = 'zh'): PageMeta
       title: `${project.name} · ${site}`,
       description: truncate(project.description || SETTINGS.siteDescription),
       image: project.coverUrl,
+    }
+  }
+
+  const noteSlug = path.match(/^\/notes\/(.+)$/)?.[1]
+  if (noteSlug) {
+    const note = NOTES[lang].find((item) => item.slug === decodeURIComponent(noteSlug))
+    if (!note) return fallback
+    return {
+      title: `${note.title} · ${site}`,
+      description: truncate(note.title),
+      image: note.coverUrl,
     }
   }
 

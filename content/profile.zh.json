@@ -2,7 +2,7 @@
   "name": "MacOazo",
   "title": "全栈开发 · 设计 / 代码 / AI",
   "avatarUrl": "/images/profile-avatar.jpeg",
-  "location": "上海 · 支持远程",
+  "location": "San Francisco, CA",
   "headline": "站在医疗与代码交汇处的工程师。",
   "bio": "2017 年进入软件开发领域，一直在构建医生和患者真正会用的软件：从蓝牙硬件检测、互联网问诊、医生影像调阅到 MDT 多学科会诊，覆盖登录认证、即时通讯、APNs 推送、音视频通话、WebSocket 实时协作和 App Store 上架的完整移动端交付链路。\n在医学影像方向，我参与 DICOM 影像调阅、报告查看、历史影像对比、MPR / 3D 与 AI 分析工作流的建设，能够从前端查看器、iOS 客户端一路做到 Go / React 全栈服务的端到端闭环。近两年持续把 Claude Code、Cursor、AI Agent 和个人知识库引入日常研发，让需求拆解、代码生成、文档沉淀和测试验证都有了加速度。",
   "philosophy": "「给医生用的工具应当快速、诚实、安静。速度赢得信任，对不确定性的坦诚守住信任。」",
@@ -34,7 +34,7 @@
         "设备状态管理"
       ],
       "link": "",
-      "coverUrl": ""
+      "coverUrl": "/images/project-formaldehyde-ble-cover.webp"
     },
     {
       "name": "全网云问诊 App",
@@ -53,7 +53,7 @@
         "本地缓存"
       ],
       "link": "",
-      "coverUrl": ""
+      "coverUrl": "/images/project-telemedicine-cover.webp"
     },
     {
       "name": "全网云医助 App",
@@ -73,7 +73,7 @@
         "权限控制"
       ],
       "link": "",
-      "coverUrl": ""
+      "coverUrl": "/images/project-medical-imaging-assistant-cover.webp"
     },
     {
       "name": "全网云协同 App",
@@ -93,7 +93,7 @@
         "权限控制"
       ],
       "link": "",
-      "coverUrl": ""
+      "coverUrl": "/images/project-mdt-collaboration-cover.webp"
     },
     {
       "name": "医学影像查看器",
@@ -115,7 +115,7 @@
         "Redis"
       ],
       "link": "",
-      "coverUrl": ""
+      "coverUrl": "/images/project-medical-imaging-viewer-cover.webp"
     },
     {
       "name": "eword-collab 影像协同服务",
@@ -135,7 +135,7 @@
         "Concurrency"
       ],
       "link": "",
-      "coverUrl": ""
+      "coverUrl": "/images/project-realtime-collab-backend-cover.webp"
     }
   ],
   "skills": [

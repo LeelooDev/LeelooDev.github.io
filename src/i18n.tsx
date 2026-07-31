@@ -8,11 +8,13 @@ const MESSAGES = {
   navArticles: { zh: '文章', en: 'Articles' },
   navProjects: { zh: '项目', en: 'Projects' },
   navArchive: { zh: '归档', en: 'Archive' },
-  navNow: { zh: '此刻', en: 'Now' },
+  navNotes: { zh: '笔记', en: 'Notes' },
   navAbout: { zh: '关于', en: 'About' },
   mainNav: { zh: '主导航', en: 'Main navigation' },
+  openMenu: { zh: '打开菜单', en: 'Open menu' },
+  closeMenu: { zh: '关闭菜单', en: 'Close menu' },
   search: { zh: '搜索', en: 'Search' },
-  searchPlaceholder: { zh: '搜索文章、项目…', en: 'Search articles, projects…' },
+  searchPlaceholder: { zh: '搜索文章、项目、笔记…', en: 'Search articles, projects and notes…' },
   searchResults: { zh: '结果', en: 'RESULTS' },
   searchSuggested: { zh: '推荐', en: 'SUGGESTED' },
   searchNoResults: { zh: '没有结果', en: 'NO RESULTS' },
@@ -25,11 +27,16 @@ const MESSAGES = {
   searchToggleHint: { zh: '⌘K 切换', en: '⌘K TOGGLE' },
   typeArticle: { zh: '文章', en: 'ARTICLE' },
   typeProject: { zh: '项目', en: 'PROJECT' },
+  typeNote: { zh: '笔记', en: 'NOTE' },
   themeToggle: { zh: '切换主题', en: 'Toggle theme' },
   langToggle: { zh: 'English', en: '中文' },
   footerSitemap: { zh: '站点地图', en: 'SITEMAP' },
   footerElsewhere: { zh: '其他平台', en: 'ELSEWHERE' },
   footerContact: { zh: '联系方式', en: 'CONTACT' },
+  siteDescription: {
+    zh: '记录设计、代码、阅读和生活。',
+    en: 'Notes on design, code, reading, and life.',
+  },
   loading: { zh: '正在加载…', en: 'Loading…' },
   loadingArticles: { zh: '正在加载文章…', en: 'Loading articles…' },
   loadError: { zh: '暂时无法连接内容服务，请稍后重试。', en: 'The content service is unreachable — please retry shortly.' },
@@ -118,15 +125,10 @@ const MESSAGES = {
   awardsLabel: { zh: '奖项', en: 'AWARDS' },
   factsLabel: { zh: '有趣的事', en: 'INTERESTING FACTS' },
 
-  nowSub: {
-    zh: '我最近在做、在读、在听的东西。',
-    en: 'What I am up to right now — building, reading, listening.',
-  },
-  nowUpdatedPrefix: { zh: '最后更新 — ', en: 'LAST UPDATED — ' },
-  nowFoot: {
-    zh: '这个页面来自开发者圈的 /now 传统——公开回答「你最近在专注什么？」',
-    en: 'This page follows the /now movement — a public answer to “what are you focused on these days?”',
-  },
+  notesLibrary: { zh: '笔记库', en: 'Notebook' },
+  notesEmpty: { zh: '还没有笔记。', en: 'No notes yet.' },
+  noteNotFound: { zh: '这篇笔记不存在。', en: 'Note not found.' },
+  notesError: { zh: '暂时无法加载笔记。', en: 'Notes are unavailable right now.' },
 } satisfies Record<string, { zh: string; en: string }>
 
 export type MessageKey = keyof typeof MESSAGES

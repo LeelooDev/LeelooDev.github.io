@@ -25,7 +25,7 @@ export function ProjectsPage() {
               to={`/projects/${index}`}
               style={{ animationDelay: `${index * 0.06}s` }}
             >
-              <div className="project-card-cover" style={{ height: 210 }}>
+              <div className="project-card-cover">
                 {project.coverUrl ? (
                   <img className="cover-img" src={project.coverUrl} alt={`${project.name} ${t('projectShot')}`} loading="lazy" />
                 ) : (

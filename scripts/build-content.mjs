@@ -10,6 +10,7 @@ import { renderMarkdown } from './markdown.mjs'
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const CONTENT = join(ROOT, 'content')
 const POSTS_DIR = join(CONTENT, 'posts')
+const NOTES_DIR = join(CONTENT, 'notes')
 const OUT = join(ROOT, 'src', 'content.ts')
 
 const readJson = (name) => JSON.parse(readFileSync(join(CONTENT, name), 'utf8'))
@@ -88,6 +89,8 @@ for (const file of files) {
   const override = {}
   if (en.data.title) override.title = en.data.title
   if (en.data.excerpt) override.excerpt = en.data.excerpt
+  if (en.data.tags) override.tags = en.data.tags
+  if (en.data.coverAlt) override.coverAlt = en.data.coverAlt
   if (bodyEn) {
     const rendered = renderMarkdown(bodyEn)
     override.html = rendered.html
@@ -100,6 +103,57 @@ for (const file of files) {
 // 列表按发布时间倒序：文章页的「上一篇 / 下一篇」依赖这个顺序。
 posts.sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
 
+const noteFiles = readdirSync(NOTES_DIR)
+  .filter((name) => name.endsWith('.md') && !name.endsWith('.en.md'))
+  .sort()
+
+const notes = []
+const enNoteOverrides = {}
+for (const file of noteFiles) {
+  const slug = file.replace(/\.md$/, '')
+  const { data, content } = matter(readFileSync(join(NOTES_DIR, file), 'utf8'))
+  const date = toIso(requireField(data, 'date', file), file)
+  const body = content.trim()
+  const rendered = renderMarkdown(body)
+
+  notes.push({
+    slug,
+    title: requireField(data, 'title', file),
+    date,
+    group: requireField(data, 'group', file),
+    groupOrder: Number(data.groupOrder ?? 0),
+    noteOrder: Number(data.noteOrder ?? 0),
+    coverUrl: data.cover ?? '',
+    coverAlt: data.coverAlt ?? '',
+    html: rendered.html,
+    toc: rendered.toc,
+    readingMinutes: estimateMinutes(body),
+  })
+
+  try {
+    const en = matter(readFileSync(join(NOTES_DIR, `${slug}.en.md`), 'utf8'))
+    const enBody = en.content.trim()
+    const override = {}
+    if (en.data.title) override.title = en.data.title
+    if (en.data.group) override.group = en.data.group
+    if (en.data.coverAlt) override.coverAlt = en.data.coverAlt
+    if (enBody) {
+      const enRendered = renderMarkdown(enBody)
+      override.html = enRendered.html
+      override.toc = enRendered.toc
+      override.readingMinutes = estimateMinutes(enBody)
+    }
+    if (Object.keys(override).length) enNoteOverrides[slug] = override
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error
+  }
+}
+
+notes.sort((a, b) =>
+  a.groupOrder - b.groupOrder ||
+  a.noteOrder - b.noteOrder ||
+  b.date.localeCompare(a.date))
+
 const profileZh = readJson('profile.zh.json')
 const profileEn = readJson('profile.en.json')
 const settings = readJson('settings.json')
@@ -109,7 +163,7 @@ const banner = `// 此文件由 scripts/build-content.mjs 从 content/ 生成，
 `
 
 const source = `${banner}
-import type { Page, Post, Profile, ProfileLocale, SiteSettings } from './types'
+import type { Note, Page, Post, Profile, ProfileLocale, SiteSettings } from './types'
 
 const RAW_POSTS: Post[] = ${JSON.stringify(posts, null, 2)}
 
@@ -123,6 +177,15 @@ function page(items: Post[]): Page<Post> {
 export const POSTS: Record<ProfileLocale, Page<Post>> = {
   zh: page(RAW_POSTS),
   en: page(RAW_POSTS.map((post) => (EN_OVERRIDES[post.slug] ? { ...post, ...EN_OVERRIDES[post.slug] } : post))),
+}
+
+const RAW_NOTES: Note[] = ${JSON.stringify(notes, null, 2)}
+
+const EN_NOTE_OVERRIDES: Record<string, Partial<Note>> = ${JSON.stringify(enNoteOverrides, null, 2)}
+
+export const NOTES: Record<ProfileLocale, Note[]> = {
+  zh: RAW_NOTES,
+  en: RAW_NOTES.map((note) => (EN_NOTE_OVERRIDES[note.slug] ? { ...note, ...EN_NOTE_OVERRIDES[note.slug] } : note)),
 }
 
 const PROFILE_ZH: Profile = ${JSON.stringify(profileZh, null, 2)}
@@ -143,4 +206,4 @@ export const BUILD_DATE = ${JSON.stringify(new Date().toISOString().slice(0, 10)
 `
 
 writeFileSync(OUT, source)
-console.log(`content.ts 已生成：${posts.length} 篇文章、${profileZh.projects.length} 个项目`)
+console.log(`content.ts 已生成：${posts.length} 篇文章、${notes.length} 篇笔记、${profileZh.projects.length} 个项目`)

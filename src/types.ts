@@ -32,6 +32,20 @@ export interface Post {
   updatedAt: string
 }
 
+export interface Note {
+  slug: string
+  title: string
+  date: string
+  group: string
+  groupOrder: number
+  noteOrder: number
+  coverUrl: string
+  coverAlt: string
+  html: string
+  toc: PostHeading[]
+  readingMinutes: number
+}
+
 export interface Page<T> {
   items: T[]
   page: number

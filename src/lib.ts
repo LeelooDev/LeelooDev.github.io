@@ -1,5 +1,5 @@
 import type { Post } from './types'
-import { POSTS, PROFILE, SETTINGS } from './content'
+import { NOTES, POSTS, PROFILE, SETTINGS } from './content'
 import { useI18n } from './i18n'
 
 /** 阅读时长在构建时就按正文长度算好了，这里只做转发，调用方不用改。 */
@@ -39,7 +39,7 @@ export function parseProjectDescription(description: string): ProjectSection[] {
       current.bullets.push(bullet[1])
       continue
     }
-    const labeled = line.match(/^([^：:]{2,10})[：:]\s*(.*)$/)
+    const labeled = line.match(/^([^：:]{2,24})[：:]\s*(.*)$/)
     if (labeled) {
       current = { title: labeled[1], text: labeled[2], bullets: [] }
       sections.push(current)
@@ -56,7 +56,10 @@ export function parseProjectDescription(description: string): ProjectSection[] {
 /** 项目卡片摘要：优先取「项目概述」正文，避免把标签一起显示。 */
 export function projectOverview(description: string) {
   const sections = parseProjectDescription(description)
-  return sections.find((section) => section.title.includes('概述') || section.title.includes('描述'))?.text
+  return sections.find((section) =>
+    section.title.includes('概述') ||
+    section.title.includes('描述') ||
+    /overview|summary/i.test(section.title))?.text
     ?? sections[0]?.text
     ?? description
 }
@@ -79,12 +82,18 @@ function settled<T>(data: T): StaticQuery<T> {
 }
 
 const POSTS_RESULT = { zh: settled(POSTS.zh), en: settled(POSTS.en) }
+const NOTES_RESULT = { zh: settled(NOTES.zh), en: settled(NOTES.en) }
 const PROFILE_RESULT = { zh: settled(PROFILE.zh), en: settled(PROFILE.en) }
 const SETTINGS_RESULT = settled(SETTINGS)
 
 export function usePosts() {
   const { lang } = useI18n()
   return POSTS_RESULT[lang]
+}
+
+export function useNotes() {
+  const { lang } = useI18n()
+  return NOTES_RESULT[lang]
 }
 
 export function useProfile() {

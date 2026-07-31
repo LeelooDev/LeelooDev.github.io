@@ -5,7 +5,7 @@ import { PostCard } from '../components/PostCard'
 import { ProjectCard } from '../components/ProjectCard'
 import { HomeSkeleton } from '../components/Skeleton'
 import { useI18n } from '../i18n'
-import { postDate, readingMinutes, splitBio, usePosts, useProfile, useSiteSettings } from '../lib'
+import { postDate, readingMinutes, splitBio, usePosts, useProfile } from '../lib'
 
 export function HomePage() {
   const { t, categoryLabel, formatDate, minutesRead } = useI18n()
@@ -111,7 +111,6 @@ export function HomePage() {
 
 function Hero({ profile }: { profile: Profile }) {
   const { t } = useI18n()
-  const settings = useSiteSettings()
   const glowRef = useRef<HTMLDivElement>(null)
   const [lead, restBio] = splitBio(profile.bio)
   const emailContact = profile.contacts.find((contact) => contact.url.startsWith('mailto:'))
@@ -135,7 +134,7 @@ function Hero({ profile }: { profile: Profile }) {
           <h1 className="hero-name">{profile.name}</h1>
           <div className="hero-lead">{lead}</div>
           {restBio ? <div className="hero-sub">{restBio}</div> : (
-            <div className="hero-sub">{settings.data?.siteDescription}</div>
+            <div className="hero-sub">{t('siteDescription')}</div>
           )}
           <div className="hero-actions">
             <Link className="btn-primary" to="/about">{t('aboutMe')}</Link>

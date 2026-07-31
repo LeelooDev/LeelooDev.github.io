@@ -1,8 +1,215 @@
 {
-  "location": "Shanghai · Remote-friendly",
+  "name": "MacOazo",
+  "title": "Full-stack Development · Design / Code / AI",
+  "avatarUrl": "/images/profile-avatar.jpeg",
+  "location": "San Francisco, CA",
   "headline": "An engineer at the intersection of medicine and code.",
-  "bio": "Since 2017 I have been building software that doctors and patients actually use: Bluetooth hardware detection, online consultations, imaging viewers and MDT collaboration, covering the full mobile delivery chain from auth, messaging and APNs push to audio/video calls, realtime WebSocket collaboration and App Store releases.\nOn the medical imaging side I work across DICOM retrieval, report viewing, prior-study comparison and MPR / 3D / AI analysis workflows — from the web viewer and iOS client all the way to Go / React full-stack services. In the last two years I have folded Claude Code, Cursor, AI agents and a personal knowledge base into my daily engineering loop.",
+  "bio": "Since 2017 I have been building software that doctors and patients actually use: Bluetooth hardware detection, online consultations, imaging viewers and MDT collaboration, covering the full mobile delivery chain from authentication, messaging and APNs push to audio/video calls, realtime WebSocket collaboration and App Store releases.\nOn the medical imaging side I work across DICOM retrieval, report viewing, prior-study comparison and MPR / 3D / AI analysis workflows — from the web viewer and iOS client all the way to Go / React full-stack services. In the last two years I have folded Claude Code, Cursor, AI agents and a personal knowledge base into my daily engineering loop.",
   "philosophy": "“Tools for doctors should be fast, honest and quiet. Speed earns trust; honesty about uncertainty keeps it.”",
+  "contacts": [
+    {
+      "type": "email",
+      "label": "Email",
+      "url": "mailto:tiantiancoolcool@gmail.com"
+    },
+    {
+      "type": "github",
+      "label": "GitHub",
+      "url": "https://github.com/LeelooDev"
+    }
+  ],
+  "projects": [
+    {
+      "name": "iOS Bluetooth Formaldehyde Monitor",
+      "role": "Core iOS Development",
+      "period": "",
+      "description": "Overview: An iOS application that connects to an external formaldehyde sensor over Bluetooth, reads concentration data in realtime, displays measurements and warns when indoor levels exceed the configured threshold.\n\nResponsibilities: Built the core iOS workflow, including device scanning, connection lifecycle, automatic reconnection, service discovery, characteristic reads and writes, protocol parsing and UI state. Added clear handling for disabled Bluetooth, failed connections, unexpected disconnects and invalid sensor data.\n\nCore features:\n- Bluetooth device discovery and connection management\n- Realtime concentration readings and measurement display\n- Normal, warning and exceeded-threshold states\n- Alerts, error feedback and automatic reconnection\n- Hardware protocol parsing and device integration\n\nHighlights: Designed a reusable CoreBluetooth communication layer that centralizes connection state, data transport and recovery, completing the full path from physical sensing and BLE transfer to protocol decoding, display and alerts.",
+      "tech": [
+        "Swift",
+        "CoreBluetooth",
+        "UIKit / SwiftUI",
+        "MVVM",
+        "Bluetooth Protocols",
+        "Data Parsing",
+        "Device State Management"
+      ],
+      "link": "",
+      "coverUrl": "/images/project-formaldehyde-ble-cover.webp"
+    },
+    {
+      "name": "Cloud Telemedicine App",
+      "role": "Core iOS Business Development",
+      "period": "",
+      "description": "Overview: A hospital telemedicine app that gives patients online appointment booking, text consultations, realtime messaging, voice calls, video consultations and push notifications.\n\nResponsibilities: Developed the main iOS business flows, including authentication, appointment booking, conversation lists, chat, message delivery, unread counts, push handling and audio/video calling. Coordinated consultation, order, message and call state with backend services.\n\nCore features:\n- Clinician selection, appointment booking and order transitions\n- Text consultation, conversation lists and chat detail\n- WebSocket messaging, unread counts and local caching\n- APNs notifications and consultation status reminders\n- Voice and video consultations\n- Synchronized consultation, message and call state\n\nHighlights: Delivered an end-to-end patient journey from appointment through realtime messaging and video consultation, improving access to hospital services from mobile devices.",
+      "tech": [
+        "Swift",
+        "UIKit / SwiftUI",
+        "MVVM",
+        "WebSocket",
+        "APNs",
+        "Instant Messaging",
+        "Audio / Video Calls",
+        "REST API",
+        "Local Cache"
+      ],
+      "link": "",
+      "coverUrl": "/images/project-telemedicine-cover.webp"
+    },
+    {
+      "name": "Cloud Clinician Assistant App",
+      "role": "Core iOS Development",
+      "period": "",
+      "description": "Overview: A mobile medical imaging assistant for clinicians to review patient studies, radiology reports and prior examinations away from a desktop workstation.\n\nResponsibilities: Built authentication, patient and study lists, image review, report detail, examination metadata and prior-study access. Integrated patient, study, image URL, report and permission APIs while improving image loading, report reading and navigation on mobile.\n\nCore features:\n- Clinician patient lists and study retrieval\n- CT, MR and DR image viewing\n- Structured findings, diagnosis and report details\n- Prior examinations and comparison workflows\n- Mobile image zooming, scrolling and series switching\n- Clinician permissions and data access control\n\nHighlights: Moved the complete image-and-report review workflow from desktop workstations to mobile, helping clinicians review results and communicate decisions wherever they are.",
+      "tech": [
+        "Swift",
+        "UIKit / SwiftUI",
+        "MVVM",
+        "WKWebView",
+        "REST API",
+        "DICOM Viewing",
+        "Medical Report UI",
+        "Local Cache",
+        "Authentication",
+        "Authorization"
+      ],
+      "link": "",
+      "coverUrl": "/images/project-medical-imaging-assistant-cover.webp"
+    },
+    {
+      "name": "Cloud MDT Collaboration App",
+      "role": "Core iOS Development",
+      "period": "",
+      "description": "Overview: An MDT collaboration app for remote multidisciplinary consultation, allowing clinicians to discuss complex cases while reviewing shared patient records, imaging reports and examinations.\n\nResponsibilities: Developed consultation lists and detail, case records, image reports, team discussions, consultation state and final conclusions. Integrated case, imaging, report, member, permission and messaging services, with a focus on clear mobile collaboration.\n\nCore features:\n- Consultation creation, lists and detail\n- Shared cases, imaging reports and examination information\n- Team discussions, membership and permission state\n- Realtime consultation status, records and archived conclusions\n- Mobile DICOM viewing and synchronized remote review\n- APNs notifications and WebSocket collaboration\n\nHighlights: Delivered the complete MDT flow from consultation creation and shared evidence through clinician discussion and archived decisions, enabling cross-specialty remote collaboration from iOS.",
+      "tech": [
+        "Swift",
+        "UIKit / SwiftUI",
+        "MVVM",
+        "WebSocket",
+        "APNs",
+        "REST API",
+        "WKWebView",
+        "DICOM Viewing",
+        "Instant Messaging",
+        "Authorization"
+      ],
+      "link": "",
+      "coverUrl": "/images/project-mdt-collaboration-cover.webp"
+    },
+    {
+      "name": "Medical Imaging Viewer",
+      "role": "Core React Full-stack Development",
+      "period": "",
+      "description": "Overview: A React full-stack medical imaging and analysis platform for desktop, mobile and web, supporting clinical image review, diagnosis workflows and report generation.\n\nResponsibilities: Developed the core imaging workspace, viewport layouts, series browser, 2D viewing, MPR, volume rendering, hanging protocols, pseudocolor tools, AI segmentation results, report viewing and responsive layouts. Worked across DICOM retrieval, data loading, state management and backend integration.\n\nCore features:\n- 2D viewing, series navigation and viewport layouts\n- Volume rendering, multiplanar reconstruction and hanging protocols\n- Pseudocolor, 4D imaging and pathology viewing\n- DICOMweb retrieval, image loading and API integration\n- AI segmentation results and automated reporting\n- Responsive access across desktop, mobile and web\n\nHighlights: Implemented a complete diagnostic workflow from image retrieval and 2D / 3D review through MPR, AI analysis and reporting, available consistently across device classes.",
+      "tech": [
+        "React",
+        "TypeScript",
+        "Node.js",
+        "REST API",
+        "WebSocket",
+        "Cornerstone3D",
+        "DICOMweb",
+        "VTK.js / Three.js",
+        "Tailwind CSS",
+        "Zustand / Redux",
+        "PostgreSQL",
+        "Redis"
+      ],
+      "link": "",
+      "coverUrl": "/images/project-medical-imaging-viewer-cover.webp"
+    },
+    {
+      "name": "eword-collab Imaging Collaboration Service",
+      "role": "Go Realtime Backend Development",
+      "period": "",
+      "description": "Overview: An independent realtime collaboration backend for medical imaging. It provides collaboration-room management, WebSocket operation relay, member presence and automatic room-disposal notifications to the business backend and imaging viewer.\n\nResponsibilities: Designed and implemented room APIs, the CollabHub WebSocket layer, authoritative group state, controller transfer, operation relay, snapshot synchronization, heartbeats, slow-client handling, JWT verification, service-token middleware, disposal webhooks and Prometheus metrics. Kept the collaboration domain separate from patient, notification and tenant business logic.\n\nCore features:\n- Collaboration room creation, lookup, controller transfer and disposal\n- WebSocket auth, operation, snapshot, quit and ping protocol\n- Per-room actor event loops, sequence numbering and authoritative state\n- Member presence, controller changes and operation broadcasts\n- Empty-room grace periods, TTL expiry and webhook notifications\n- JWT verification, bearer service authentication and Prometheus metrics\n\nHighlights: A deliberately narrow collaboration-domain boundary separates realtime state and messaging from business orchestration. A goroutine actor per room serializes events and leaves a clean path toward Redis state and a Pub/Sub backplane.",
+      "tech": [
+        "Go",
+        "WebSocket",
+        "Goroutine Actor",
+        "HTTP API",
+        "JWT",
+        "Webhook",
+        "Prometheus",
+        "YAML Config",
+        "REST API",
+        "Concurrency"
+      ],
+      "link": "",
+      "coverUrl": "/images/project-realtime-collab-backend-cover.webp"
+    }
+  ],
+  "skills": [
+    {
+      "category": "iOS Development",
+      "items": [
+        "Swift",
+        "SwiftUI",
+        "UIKit",
+        "WKWebView",
+        "App Store Delivery",
+        "In-App Purchase",
+        "WeChat Login"
+      ]
+    },
+    {
+      "category": "AI-assisted Development",
+      "items": [
+        "Vibe Coding",
+        "Cursor",
+        "Claude Code",
+        "ChatGPT",
+        "Prompt Engineering",
+        "AI Agents",
+        "Development Automation"
+      ]
+    },
+    {
+      "category": "Full-stack Development",
+      "items": [
+        "React",
+        "Next.js",
+        "TypeScript",
+        "Tailwind CSS",
+        "Node.js",
+        "REST API",
+        "Database Design"
+      ]
+    },
+    {
+      "category": "Product Design",
+      "items": [
+        "UI/UX Design",
+        "Figma",
+        "Interaction Design",
+        "Design Systems",
+        "Product Prototyping",
+        "Personal Knowledge Systems"
+      ]
+    },
+    {
+      "category": "Medical Imaging",
+      "items": [
+        "DICOM",
+        "Medical Imaging Viewers",
+        "Image Retrieval",
+        "Prior Comparison",
+        "3D Views",
+        "AI Imaging Analysis"
+      ]
+    },
+    {
+      "category": "Engineering Tools",
+      "items": [
+        "Git",
+        "GitHub",
+        "Xcode",
+        "VS Code",
+        "Chrome DevTools",
+        "Automated Testing",
+        "Deployment"
+      ]
+    }
+  ],
   "experience": [
     {
       "org": "Medical technology company",
@@ -36,11 +243,11 @@
         "items": [
           {
             "title": "MacOazo personal platform",
-            "note": "This very site — a Go + React split stack, currently polishing the bilingual experience and the AI digital twin."
+            "note": "This site itself — currently refining its bilingual reading experience and personal knowledge workflow."
           },
           {
             "title": "Imaging collaboration backend",
-            "note": "A Go service bringing realtime collaboration to a medical imaging viewer, built on the actor model and evolving toward multi-instance scaling."
+            "note": "A Go service that brings realtime collaboration to a medical imaging viewer and is evolving toward multi-instance scaling."
           }
         ]
       },
@@ -49,29 +256,11 @@
         "items": [
           {
             "title": "AI agent engineering",
-            "note": "From prompts to workflow orchestration — distilling Claude Code practices into a reusable skill library."
+            "note": "From prompts to workflow orchestration, turning daily practices into reusable engineering patterns."
           },
           {
             "title": "WebGPU",
-            "note": "Watching what it could unlock for in-browser medical imaging rendering."
-          }
-        ]
-      },
-      {
-        "label": "READING",
-        "items": [
-          {
-            "title": "Thinking in Systems",
-            "note": "Re-examining the feedback loops in engineering and product through a systems lens."
-          }
-        ]
-      },
-      {
-        "label": "LISTENING",
-        "items": [
-          {
-            "title": "Tech podcasts",
-            "note": "Commute-time entertainment — currently catching up on AI engineering shows."
+            "note": "Exploring what it could unlock for in-browser medical imaging."
           }
         ]
       }

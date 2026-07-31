@@ -1,46 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useI18n } from '../i18n'
 import { postDate, readingMinutes, usePosts, useProfile } from '../lib'
+import { useCodeCopy } from '../useCodeCopy'
 
 // 正文是 scripts/markdown.mjs 在构建时编译好的 HTML（已 sanitize、已高亮、已包好代码块外壳），
 // 所以这里不再需要 react-markdown / rehype 那套运行时依赖。
-
-/**
- * 代码块的复制按钮不由 React 渲染（正文整块是构建时生成的 HTML），这里用事件委托接管点击。
- * 按钮文案交给 CSS 的 ::after + attr() 显示，这里只切 data-done——因为 React 重渲染会重设
- * innerHTML，JS 写进去的 textContent 会被冲掉。
- */
-function useCodeCopy() {
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const root = ref.current
-    if (!root) return
-
-    const timers = new Set<number>()
-    const onClick = (event: MouseEvent) => {
-      const button = (event.target as HTMLElement).closest<HTMLButtonElement>('button[data-copy]')
-      if (!button) return
-      const code = button.closest('.code-block')?.querySelector('pre')
-      void navigator.clipboard.writeText(code?.innerText ?? '')
-      button.dataset.done = ''
-      const timer = window.setTimeout(() => {
-        delete button.dataset.done
-        timers.delete(timer)
-      }, 1800)
-      timers.add(timer)
-    }
-
-    root.addEventListener('click', onClick)
-    return () => {
-      root.removeEventListener('click', onClick)
-      timers.forEach((timer) => clearTimeout(timer))
-    }
-  }, [])
-
-  return ref
-}
 
 function useReadingProgress() {
   const [progress, setProgress] = useState(0)
@@ -216,4 +181,3 @@ export function PostPage() {
     </div>
   )
 }
-
