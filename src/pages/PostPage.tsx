@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { useI18n } from '../i18n'
 import { postDate, readingMinutes, usePosts, useProfile } from '../lib'
 import { useCodeCopy } from '../useCodeCopy'
+import { useLightbox } from '../useLightbox'
 
 // 正文是 scripts/markdown.mjs 在构建时编译好的 HTML（已 sanitize、已高亮、已包好代码块外壳），
 // 所以这里不再需要 react-markdown / rehype 那套运行时依赖。
@@ -41,6 +42,7 @@ export function PostPage() {
   const items = posts.data.items
   const post = useMemo(() => items.find((item) => item.slug === slug) ?? null, [items, slug])
   const contentRef = useCodeCopy()
+  useLightbox(contentRef)
 
   // 必须用花括号：箭头函数简写会把 window.scrollTo 的返回值当成 effect 的清理函数交给
   // React，而它在浏览器里并不总是 undefined，卸载本页时就会 "is not a function" 崩溃。

@@ -129,6 +129,12 @@ const MESSAGES = {
   notesEmpty: { zh: '还没有笔记。', en: 'No notes yet.' },
   noteNotFound: { zh: '这篇笔记不存在。', en: 'Note not found.' },
   notesError: { zh: '暂时无法加载笔记。', en: 'Notes are unavailable right now.' },
+
+  figureZoom: { zh: '点击放大', en: 'Click to enlarge' },
+  figureViewer: { zh: '插图预览', en: 'Figure viewer' },
+  figureClose: { zh: '关闭预览', en: 'Close viewer' },
+  figureZoomIn: { zh: '放大', en: 'Zoom in' },
+  figureZoomOut: { zh: '缩小', en: 'Zoom out' },
 } satisfies Record<string, { zh: string; en: string }>
 
 export type MessageKey = keyof typeof MESSAGES

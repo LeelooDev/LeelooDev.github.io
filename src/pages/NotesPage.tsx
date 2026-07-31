@@ -5,6 +5,7 @@ import { useI18n } from '../i18n'
 import { useNotes } from '../lib'
 import type { Note } from '../types'
 import { useCodeCopy } from '../useCodeCopy'
+import { useLightbox } from '../useLightbox'
 
 interface NoteGroup {
   order: number
@@ -17,6 +18,7 @@ export function NotesPage() {
   const { t, formatDate, minutesRead } = useI18n()
   const query = useNotes()
   const contentRef = useCodeCopy()
+  useLightbox(contentRef)
 
   const groups = useMemo<NoteGroup[]>(() => {
     const grouped = new Map<number, NoteGroup>()

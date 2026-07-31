@@ -491,6 +491,10 @@ body[data-theme='light'] .code-block { border-color: rgba(20, 20, 25, 0.16); }
   text-align: center; margin-top: 12px; text-transform: uppercase;
 }
 .article-content figure.diagram figcaption { color: rgba(20, 20, 25, 0.55); }
+/* 可放大的插图。标记由 useLightbox 在客户端挂上，所以没 JS 时就只是普通静态图。 */
+.article-content [data-zoomable] { cursor: zoom-in; transition: border-color 140ms ease; }
+.article-content figure.diagram[data-zoomable]:hover { border-color: var(--border2); }
+.article-content [data-zoomable]:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 .article-content ul, .article-content ol { margin: 0 0 26px; padding-left: 24px; }
 .article-content li { margin-bottom: 8px; }
 .article-content hr { border: none; height: 1px; background: var(--border); margin: 36px 0; }
@@ -807,6 +811,50 @@ body[data-theme='light'] .code-block { border-color: rgba(20, 20, 25, 0.16); }
   font: 400 10.5px var(--font-mono); color: var(--text3);
 }
 
+/* ===== Figure lightbox ===== */
+/* 整个浮层由 useLightbox 在客户端建出来，DOM 挂在 body 上，所以不受文章栏宽约束。 */
+.lightbox {
+  position: fixed; inset: 0; z-index: 120; background: rgba(8, 8, 10, 0.92);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  display: flex; flex-direction: column; animation: fadeIn 0.18s both;
+}
+.lightbox-bar {
+  flex: none; display: flex; align-items: center; gap: 8px; padding: 12px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+.lightbox-caption {
+  flex: 1; min-width: 0; font: 400 10.5px var(--font-mono); letter-spacing: 0.08em;
+  text-transform: uppercase; color: rgba(255, 255, 255, 0.62);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.lightbox-level {
+  font: 400 11px var(--font-mono); color: rgba(255, 255, 255, 0.62);
+  min-width: 44px; text-align: center; flex: none;
+}
+.lightbox-btn {
+  flex: none; width: 34px; height: 34px; border-radius: 8px; cursor: pointer;
+  background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #fff; font: 400 15px var(--font-sans); line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s, opacity 0.15s;
+}
+.lightbox-btn:hover:not(:disabled) { background: rgba(255, 255, 255, 0.18); }
+.lightbox-btn:disabled { opacity: 0.32; cursor: default; }
+.lightbox-btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.lightbox-close { margin-left: 6px; }
+/* 放大后超出的部分靠这里滚动，省掉一套拖拽平移逻辑，触屏滑动也直接可用。 */
+.lightbox-stage { flex: 1; overflow: auto; display: flex; padding: 24px; }
+.lightbox-frame {
+  /* flex 容器里用 margin:auto 居中：内容超出时上边和左边仍然滚得到，
+     align-items:center 会把溢出的部分裁掉。 */
+  margin: auto; flex: none; background: #f6f6f4; border-radius: 12px; padding: 20px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45); cursor: zoom-in;
+  animation: popIn 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.lightbox-frame[data-zoomed] { cursor: zoom-out; }
+.lightbox-frame svg, .lightbox-frame img { display: block; width: 100%; height: 100%; }
+.lightbox-frame img { object-fit: contain; border-radius: 6px; }
+
 /* ===== Responsive ===== */
 @media (max-width: 1024px) {
   .article-toc { display: none; }
@@ -864,6 +912,13 @@ body[data-theme='light'] .code-block { border-color: rgba(20, 20, 25, 0.16); }
   .about-two-col { grid-template-columns: 1fr; }
   .featured-body { padding: 28px 24px; }
   .footer-inner, .footer-bottom-inner { padding-left: 20px; padding-right: 20px; }
+  /* 手机上正文本来就窄，把留白收紧、按钮放大到能点得准的尺寸 */
+  .lightbox-stage { padding: 12px; }
+  .lightbox-frame { padding: 12px; border-radius: 10px; }
+  .lightbox-bar { padding: 10px 12px; gap: 6px; }
+  .lightbox-btn { width: 40px; height: 40px; }
+  .lightbox-caption { display: none; }
+  .lightbox-level { min-width: 40px; font-size: 10.5px; }
 }
 
 /* ===== 骨架屏 ===== */
