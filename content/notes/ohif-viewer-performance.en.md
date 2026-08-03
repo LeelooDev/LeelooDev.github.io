@@ -1,7 +1,7 @@
 ---
 title: OHIF Viewer Performance Signals
 group: Medical Imaging
-coverAlt: A medical imaging workstation on a desktop monitor and tablet
+coverAlt: A hand-drawn performance gauge
 ---
 
 Medical viewer performance is not just a first-screen metric. Clinicians notice whether stack scrolling is stable, series switching is immediate, and viewport tools keep their frame rate.

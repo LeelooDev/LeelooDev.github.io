@@ -1,7 +1,7 @@
 ---
 title: Notes on an AI Radiotherapy Contouring Workbench
 group: Medical Imaging
-coverAlt: An AI-assisted radiotherapy contouring and review workbench
+coverAlt: A hand-drawn brain scan
 ---
 
 This is a six-document design set (numbered RTC-00 through RTC-05) covering the product plan, requirements, system design, frontend guide, deployment and compliance, and competitive analysis. These notes condense it into one piece, ordered as: why build it, what it looks like, and where the boundaries are.

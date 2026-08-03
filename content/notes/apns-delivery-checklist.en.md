@@ -1,7 +1,7 @@
 ---
 title: APNs Delivery Troubleshooting Checklist
 group: iOS Development
-coverAlt: Two swans on a blue lake
+coverAlt: A hand-drawn delivered push notification
 ---
 
 When a notification does not arrive, repeatedly sending it is not a diagnosis. The APNs path crosses the app, the operating system, Apple services, and the business backend. The fastest approach is to identify the layer where the message stopped.

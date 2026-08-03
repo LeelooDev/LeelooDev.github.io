@@ -4,8 +4,8 @@ date: 2026-07-19
 group: AI 工程
 groupOrder: 2
 noteOrder: 1
-cover: /images/rag-personal-knowledge-base-cover.jpg
-coverAlt: 高处俯拍的峡谷土路与河道纹理
+cover: /images/note-rag-chunking-experiments-cover.svg
+coverAlt: 手绘风格的分块文档图标
 ---
 
 RAG 的切片大小没有通用最优值。真正影响效果的是文档结构、问题粒度、检索方式和最终允许进入模型的上下文预算。

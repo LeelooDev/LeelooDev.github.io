@@ -1,7 +1,7 @@
 ---
 title: Choosing Claude Code Plugins
 group: Claude Code
-coverAlt: A street wall covered in colourful graffiti
+coverAlt: A hand-drawn plug and socket
 ---
 
 More plugins is not better. Each one carries an **always-on cost** — its descriptions sit in your context whether or not you use it that session. Past twenty plugins those descriptions alone can consume several thousand tokens, and that's exactly the space you wanted for code.

@@ -1,7 +1,7 @@
 ---
 title: DICOMweb Request Path Quick Reference
 group: Medical Imaging
-coverAlt: Medical imaging interfaces on a phone and tablet
+coverAlt: A hand-drawn API endpoint
 ---
 
 The three core DICOMweb services answer different questions: what exists, what should be retrieved, and what should be stored. When image loading fails, first determine whether the failure is in QIDO, WADO, or client-side decoding.

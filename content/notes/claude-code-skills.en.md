@@ -1,7 +1,7 @@
 ---
 title: How Claude Code Skills Are Written and Loaded
 group: Claude Code
-coverAlt: Layered curves of a pale modernist building
+coverAlt: A hand-drawn toolbox
 ---
 
 Deciding whether something belongs in `CLAUDE.md` or in a skill is simple: **facts go in CLAUDE.md, procedures go in a skill**. The former stays resident in context; the latter loads only when used — which is why even a long reference document costs almost nothing as a skill.

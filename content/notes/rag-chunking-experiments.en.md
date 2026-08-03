@@ -1,7 +1,7 @@
 ---
 title: RAG Chunking Experiment Log
 group: AI Engineering
-coverAlt: An aerial view of a canyon road and river textures
+coverAlt: A hand-drawn chunked document
 ---
 
 There is no universally optimal chunk size for RAG. Results depend on document structure, question granularity, retrieval strategy, and the context budget available to the model.

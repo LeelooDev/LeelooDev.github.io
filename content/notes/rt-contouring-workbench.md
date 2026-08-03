@@ -4,8 +4,8 @@ date: 2026-07-30
 group: 医学影像
 groupOrder: 3
 noteOrder: 3
-cover: /images/note-rt-contouring-workbench-cover.jpg
-coverAlt: AI 辅助放疗勾画与医学影像复核工作台
+cover: /images/note-rt-contouring-workbench-cover.svg
+coverAlt: 手绘风格的脑部扫描图标
 ---
 
 这是一套六份文档的设计资料集（编号 RTC-00 到 RTC-05），从产品方案、需求、系统设计、前端指南，到部署合规与竞品分析。这里把它整理成一篇笔记，按「为什么做、做成什么样、边界在哪」的顺序展开。
