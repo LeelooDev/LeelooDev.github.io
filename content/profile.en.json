@@ -136,6 +136,26 @@
       ],
       "link": "",
       "coverUrl": "/images/project-realtime-collab-backend-cover.webp"
+    },
+    {
+      "name": "CubeStow Container Loading Workbench",
+      "role": "Solo Design and Development",
+      "period": "",
+      "description": "Overview: A 3D load-planning web application for export sales staff and loading planners, covering both shipping containers and box trucks. Given measured interior dimensions, door aperture, weight limits and a cargo list, it computes how much actually fits and where each carton goes, producing an interactive 3D plan and a loading sequence the warehouse can follow. The governing principle is that measured dimensions win: container templates are only a reference, and the variation between carriers and production batches is often exactly what decides whether a shipment fits.\n\nResponsibilities: Built end to end on my own — the PRD, the UI specification and the runtime specification, then the packing algorithms, the Web Worker compute protocol, result attribution, counterfactual re-runs, the 3D viewport and export, along with a fully local storage model that needs no backend.\n\nCore features:\n- Single-page workbench: inputs on the left, 3D result always visible, any change recomputes and diffs against the previous run\n- Packing engine: block loading and extreme-point placement, both multi-strategy, running inside a Web Worker\n- Constraint checking: door clearance, payload limits, support ratio, stacking depth, inter-box gaps, and no heavy-on-light\n- Attribution for every unpacked item, with actionable suggestions wired to a one-click recompute\n- Layered and exploded 3D views, loading-step playback, and a printable PDF loading guide\n- Cargo import from Excel, CSV or plain text, with mixed dimension notations normalized automatically\n\nHighlights: The engine is organized as a multi-start constructive heuristic. Block loading picks the oriented array that fits the most units per step, then splits the remaining void into three disjoint spaces other SKUs can backfill; extreme-point placement builds a strategy pool from five sort keys times two placement preferences and keeps the best-scoring result for a given input. Randomness comes only from an explicit seed, so runs are deterministic and reproducible. Each depth tier gets its own time budget, strategies execute in slices so cancellation can preempt them, and the winning candidate passes an independent feasibility check before delivery — falling back to the runner-up if it fails. AI analysis sits on top of counterfactual re-runs: the engine recomputes each parameter variant exactly, and the model may only cite numbers that were actually computed, never invented gains.",
+      "tech": [
+        "React 19",
+        "TypeScript",
+        "Three.js / R3F",
+        "Web Worker",
+        "Bin Packing",
+        "Heuristic Search",
+        "Zustand",
+        "IndexedDB",
+        "Tailwind CSS",
+        "Vite"
+      ],
+      "link": "",
+      "coverUrl": ""
     }
   ],
   "skills": [
