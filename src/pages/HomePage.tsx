@@ -1,11 +1,11 @@
-import { useRef } from 'react'
 import type { Profile, ProfileExperience } from '../types'
 import { Link } from 'react-router-dom'
 import { PostCard } from '../components/PostCard'
 import { ProjectCard } from '../components/ProjectCard'
 import { HomeSkeleton } from '../components/Skeleton'
+import { SaturnScene } from '../components/SaturnScene'
 import { useI18n } from '../i18n'
-import { postDate, readingMinutes, splitBio, usePosts, useProfile } from '../lib'
+import { postDate, readingMinutes, usePosts, useProfile } from '../lib'
 
 export function HomePage() {
   const { t, categoryLabel, formatDate, minutesRead } = useI18n()
@@ -111,31 +111,15 @@ export function HomePage() {
 
 function Hero({ profile }: { profile: Profile }) {
   const { t } = useI18n()
-  const glowRef = useRef<HTMLDivElement>(null)
-  const [lead, restBio] = splitBio(profile.bio)
   const emailContact = profile.contacts.find((contact) => contact.url.startsWith('mailto:'))
   const otherContacts = profile.contacts.filter((contact) => !contact.url.startsWith('mailto:'))
 
   return (
-    <div
-      className="hero"
-      onMouseMove={(event) => {
-        const glow = glowRef.current
-        if (!glow) return
-        const rect = event.currentTarget.getBoundingClientRect()
-        glow.style.transform = `translate(${event.clientX - rect.left - 270}px, ${event.clientY - rect.top - 270}px)`
-      }}
-    >
-      <div className="hero-dots" />
-      <div ref={glowRef} className="hero-glow" />
+    <div className="hero">
       <div className="hero-inner">
         <div className="hero-main">
           <div className="hero-badge"><i />{profile.title}</div>
           <h1 className="hero-name">{profile.name}</h1>
-          <div className="hero-lead">{lead}</div>
-          {restBio ? <div className="hero-sub">{restBio}</div> : (
-            <div className="hero-sub">{t('siteDescription')}</div>
-          )}
           <div className="hero-actions">
             <Link className="btn-primary" to="/about">{t('aboutMe')}</Link>
             {otherContacts.map((contact) => (
@@ -148,22 +132,8 @@ function Hero({ profile }: { profile: Profile }) {
             ) : null}
           </div>
         </div>
-        {/* 插画深浅各备一张，底色分别贴着两种主题的背景走。说明文字挂在容器上，
-            两张图对读屏器隐藏，否则同一幅画会被念两遍。 */}
-        <div className="hero-portrait" role="img" aria-label={t('heroArtworkAlt')}>
-          <img
-            className="hero-art hero-art-dark"
-            src="/images/hero-editorial-character-dark.jpg"
-            alt=""
-            aria-hidden="true"
-          />
-          <img
-            className="hero-art hero-art-light"
-            src="/images/hero-editorial-character.jpg"
-            alt=""
-            aria-hidden="true"
-          />
-        </div>
+
+        <SaturnScene label={t('heroArtworkAlt')} />
       </div>
     </div>
   )
