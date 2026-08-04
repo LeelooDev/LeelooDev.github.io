@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { PostCard } from '../components/PostCard'
 import { ProjectCard } from '../components/ProjectCard'
 import { HomeSkeleton } from '../components/Skeleton'
-import { SaturnScene } from '../components/SaturnScene'
+import { MarsScene } from '../components/MarsScene'
 import { useI18n } from '../i18n'
 import { postDate, readingMinutes, usePosts, useProfile } from '../lib'
 
@@ -118,7 +118,7 @@ function Hero({ profile }: { profile: Profile }) {
     <div className="hero">
       <div className="hero-inner">
         <div className="hero-main">
-          <div className="hero-badge"><i />{profile.title}</div>
+          <div className="hero-badge">{profile.title}</div>
           <h1 className="hero-name">{profile.name}</h1>
           <div className="hero-actions">
             <Link className="btn-primary" to="/about">{t('aboutMe')}</Link>
@@ -133,7 +133,7 @@ function Hero({ profile }: { profile: Profile }) {
           </div>
         </div>
 
-        <SaturnScene label={t('heroArtworkAlt')} />
+        <MarsScene label={t('heroArtworkAlt')} />
       </div>
     </div>
   )

@@ -53,8 +53,8 @@ const MESSAGES = {
   aboutMe: { zh: '关于我', en: 'About me' },
   emailFallback: { zh: '邮箱', en: 'Email' },
   heroArtworkAlt: {
-    zh: '缓慢旋转的真实三维土星模型',
-    en: 'A realistic three-dimensional model of Saturn rotating slowly',
+    zh: '缓慢自转的真实三维火星模型',
+    en: 'A realistic three-dimensional model of Mars rotating slowly',
   },
   noPosts: { zh: '还没有已发布文章。', en: 'No published articles yet.' },
   coverPlaceholder: { zh: 'cover image', en: 'cover image' },

@@ -1,8 +1,8 @@
-# Saturn model
+# Mars model
 
-- Source: NASA Science, “Saturn 3D Model”
-- URL: https://science.nasa.gov/resource/saturn-3d-model/
-- Credit: NASA Visualization Technology Applications and Development (VTAD)
-- Downloaded asset: `Saturn_1_120536.glb`
+- Source: NASA Science, “Planet Mars, 3D Model”
+- URL: https://science.nasa.gov/resource/planet-mars-3d-model/
+- Credit: NASA/JPL-Caltech
+- Downloaded asset: `24881_Mars_1_6792.glb`
 
-The model is stored locally as `saturn-nasa.glb` so the hero does not depend on a third-party request at runtime.
+The model is stored locally as `mars-nasa.glb` so the hero does not depend on a third-party request at runtime.
