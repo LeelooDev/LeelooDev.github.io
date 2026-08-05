@@ -1,7 +1,6 @@
 ---
 title: Debugging CoreBluetooth Connection State
 group: iOS Development
-coverAlt: A hand-drawn connected Bluetooth mark
 ---
 
 In iOS Bluetooth work, the hardest bugs are rarely about discovering a device. They usually come from the system connection, business state, and interface disagreeing with one another. This is the sequence I use whenever a connection becomes unreliable.

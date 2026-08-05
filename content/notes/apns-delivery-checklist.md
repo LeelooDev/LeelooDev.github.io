@@ -4,8 +4,6 @@ date: 2026-07-22
 group: iOS 开发
 groupOrder: 1
 noteOrder: 2
-cover: /images/note-apns-delivery-checklist-cover.svg
-coverAlt: 手绘风格的推送送达图标
 ---
 
 推送没有送达时，不要一开始就反复重传。APNs 链路跨越 App、系统、Apple 服务和业务后端，最有效的方法是先确定消息停在哪一层。

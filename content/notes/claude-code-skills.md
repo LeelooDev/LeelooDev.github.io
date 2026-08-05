@@ -4,8 +4,6 @@ date: 2026-08-02
 group: Claude Code
 groupOrder: 4
 noteOrder: 2
-cover: /images/note-claude-code-skills-cover.svg
-coverAlt: 手绘风格的工具箱图标
 ---
 
 判断一段内容该进 `CLAUDE.md` 还是该做成 skill，标准很简单：**事实进 CLAUDE.md，流程进 skill**。前者常驻上下文，后者只有被用到时才加载——所以再长的参考资料做成 skill 都几乎不花成本。

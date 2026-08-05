@@ -1,7 +1,6 @@
 ---
 title: Agent Workflow Guardrails
 group: AI Engineering
-coverAlt: A hand-drawn guardrail and shield
 ---
 
 For an agent that can call tools, the critical question is not whether it can plan autonomously. Every step must be observable, cancellable, and retryable.

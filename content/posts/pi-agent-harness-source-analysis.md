@@ -3,8 +3,8 @@ title: Pi Agent Harness 源码拆解：从一次输入到模型、工具、会�
 date: 2026-08-04T10:00:00
 category: code
 tags: [Agent, Coding Agent, TypeScript, 源码解析, LLM, 架构]
-cover: /images/pi-agent-harness-cover.svg
-coverAlt: 蜡笔手绘风插画：中间的终端窗口里画着一个蓝色的 π，屏幕右半是几行彩色输出；左侧堆着四层彩色的包，上方的云用虚线连下来，右侧是一棵分叉的会话树，末端有个红色的 leaf 标记，下方并排着三张工具卡片
+cover: /images/pi-agent-harness-cover.jpg
+coverAlt: 浮世绘版画风格的宇宙插画：漆黑夜空中一轮暗红色天体迸发出密集的放射状光线，下方是层层堆叠的白色云海与深色山脊，左侧掠过两道金色的行星环弧线
 excerpt: 沿着源码把 Pi 走一遍：九个工作区包怎样分工、Agent Loop 的双层循环在解决什么、工具调用的九步流水线、追加式会话树与上下文投影，以及低闪烁终端渲染。十张图，一条从输入到落盘的完整路径。
 dek: Pi 的架构脊柱不是 CLI，也不是某个模型 SDK，而是「可序列化消息 + 流式事件 + 可注入边界」。
 ---

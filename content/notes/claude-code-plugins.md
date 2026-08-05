@@ -4,8 +4,6 @@ date: 2026-08-02
 group: Claude Code
 groupOrder: 4
 noteOrder: 3
-cover: /images/note-claude-code-plugins-cover.svg
-coverAlt: 手绘风格的插头与插座图标
 ---
 
 插件不是装越多越好。每个插件都有一份 **always_on 开销**——不管你这次用不用，它的描述都常驻在上下文里。装到二十个以上，光是这些描述就能吃掉几千 token，而那正是你本来想留给代码的空间。

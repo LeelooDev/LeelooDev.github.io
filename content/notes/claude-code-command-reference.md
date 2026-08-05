@@ -4,8 +4,6 @@ date: 2026-08-02
 group: Claude Code
 groupOrder: 4
 noteOrder: 1
-cover: /images/note-claude-code-command-reference-cover.svg
-coverAlt: 手绘风格的终端窗口图标
 ---
 
 命令不用背。按「现在卡在哪一步」去记，需要的时候手会自己敲出来。下面按使用时机排，不按字母序。

@@ -2,7 +2,7 @@
 title: "The React Full-Stack Setup in 2026: One Codebase Across Web, Desktop, and Mobile"
 excerpt: From Next.js to Tauri to Expo, a selection checklist rebuilt as nine architecture diagrams — why each layer is chosen, when to deviate from the default, and what shadcn/ui, Appica UI, and React Bits are each actually responsible for.
 tags: [React, Next.js, TypeScript, Tauri, React Native, Tech Selection]
-coverAlt: Crayon-style illustration — a browser window holding the React logo and a page of UI cards, component fragments scattered to its left, lines running right toward servers, a database and a cloud, with a monitor, tablet and phone below
+coverAlt: Anime-style illustration — a calico cat curled up asleep on a weathered stone ledge, terracotta pots and a teal ceramic jar beside it, green foliage climbing the wall behind
 ---
 
 Stack checklists are everywhere, and most of them answer the wrong question. Listing fifteen library names doesn't tell you why those libraries fit together, and it certainly doesn't tell you which one you'll need to replace first.

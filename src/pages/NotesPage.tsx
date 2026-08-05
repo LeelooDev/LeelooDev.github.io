@@ -113,10 +113,6 @@ export function NotesPage() {
             ) : null}
           </header>
 
-          {note.coverUrl ? (
-            <img className="note-reader-cover" src={note.coverUrl} alt={note.coverAlt} />
-          ) : null}
-
           {note.html ? (
             <div
               className="article-content note-reader-content"

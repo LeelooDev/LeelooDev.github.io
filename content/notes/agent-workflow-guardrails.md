@@ -4,8 +4,6 @@ date: 2026-07-15
 group: AI 工程
 groupOrder: 2
 noteOrder: 2
-cover: /images/note-agent-workflow-guardrails-cover.svg
-coverAlt: 手绘风格的护栏与盾牌图标
 ---
 
 一个能调用工具的 Agent，最重要的不是“会不会自主规划”，而是每一步是否可观察、可取消、可重试。

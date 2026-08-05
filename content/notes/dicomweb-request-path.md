@@ -4,8 +4,6 @@ date: 2026-07-11
 group: 医学影像
 groupOrder: 3
 noteOrder: 1
-cover: /images/note-dicomweb-request-path-cover.svg
-coverAlt: 手绘风格的 API 端点图标
 ---
 
 DICOMweb 的三个核心服务分别解决“查什么、取什么、存什么”。遇到影像加载问题时，先确定失败发生在 QIDO、WADO 还是前端解码。

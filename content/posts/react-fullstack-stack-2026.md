@@ -4,7 +4,7 @@ date: 2026-08-02T10:00:00
 category: code
 tags: [React, Next.js, TypeScript, Tauri, React Native, 技术选型]
 cover: /images/react-fullstack-cover.jpg
-coverAlt: 蜡笔手绘风插画：中间的浏览器窗口里是 React 图标和一页 UI 卡片，左侧散落着组件碎片，右侧的连线通向服务器、数据库和云，下方并排着显示器、平板和手机
+coverAlt: 动画风格插画：斑驳的石台上一只三花猫蜷着身子熟睡，身旁摆着陶土花盆和青蓝色陶罐，背后爬满绿叶
 excerpt: 从 Next.js 到 Tauri 再到 Expo，把一份技术选型清单拆成九张架构图：每层为什么这么选、什么时候该偏离默认答案、以及 shadcn/ui、Appica UI、React Bits 这三层 UI 到底谁管什么。
 dek: 选型的难点从来不是「哪个库更好」，而是「哪些东西必须一起选」。
 ---

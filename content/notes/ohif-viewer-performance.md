@@ -4,8 +4,6 @@ date: 2026-07-06
 group: 医学影像
 groupOrder: 3
 noteOrder: 2
-cover: /images/note-ohif-viewer-performance-cover.svg
-coverAlt: 手绘风格的性能仪表图标
 ---
 
 医学影像 Viewer 的性能不能只看首屏。医生真正感知的是切片滚动是否稳定、切换序列是否及时，以及工具操作时视口会不会掉帧。

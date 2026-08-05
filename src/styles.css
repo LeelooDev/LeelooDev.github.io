@@ -171,12 +171,12 @@ body[data-theme='light'] .hero::before {
 }
 /* 火星没有环，整颗球完整入镜，所以舞台是正方形并在右栏里居中，不像土星那版靠右裁切。 */
 /* 尺寸完全由视口决定，不再受 grid 右栏宽度限制——列宽会把星球压成小图标。
-   贴右栏外沿放，超出的部分往左吃进 gap；54vw 这条曲线保证中等宽度下也够不到文字。
-   96vh 是另一道闸：再宽的屏幕也不让球高过 hero。 */
+   38vw 这条曲线让球稳稳待在右栏里，既不压到文字也不贴死右边距。
+   70vh 是另一道闸：矮窗口下球不会顶满 hero 高度被上下裁掉。 */
 .mars-stage {
-  position: relative; z-index: 1; width: min(clamp(400px, 50vw, 1150px), 92vh);
+  position: relative; z-index: 1; width: min(clamp(320px, 38vw, 820px), 70vh);
   max-width: none; aspect-ratio: 1 / 1;
-  justify-self: end; isolation: isolate;
+  justify-self: center; isolation: isolate;
   animation: fadeIn 0.75s 0.14s ease-out both;
 }
 .mars-stage::before {
@@ -236,6 +236,9 @@ body[data-theme='light'] .mars-stage::before {
 .featured-cover { border-left: 1px solid var(--border); min-height: 280px; }
 .featured-cover img { width: 100%; height: 100%; object-fit: cover; }
 .cover-img { width: 100%; height: 100%; object-fit: contain; background: #07101f; }
+/* 文章封面是配图不是信息图，铺满卡片比两侧留底色好看；
+   项目卡片仍用上面的 contain——那些是 SVG 图示，裁掉边角就读不全了。 */
+.article-card-cover .cover-img { object-fit: cover; }
 .cover-fallback {
   width: 100%; height: 100%; min-height: inherit;
   background: repeating-linear-gradient(45deg, var(--border) 0 10px, transparent 10px 20px);
@@ -702,10 +705,6 @@ body[data-theme='light'] .code-block { border-color: rgba(20, 20, 25, 0.16); }
   display: flex; align-items: center; gap: 10px;
   font: 400 11px var(--font-mono); color: var(--text3);
 }
-.note-reader-cover {
-  width: 100%; aspect-ratio: 1942 / 809; object-fit: contain; background: #07101f;
-  border: 1px solid var(--border); border-radius: 12px;
-}
 .note-reader-content { max-width: 720px; padding-top: 30px; }
 
 /* ===== Legacy Now ===== */
@@ -891,7 +890,7 @@ body[data-theme='light'] .code-block { border-color: rgba(20, 20, 25, 0.16); }
   .hero-inner { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 28px; }
   .hero-name { font-size: clamp(60px, 7vw, 76px); }
   /* 这一档横向已经很挤，星球得让出位置，否则会压到名字上。 */
-  .mars-stage { width: min(46vw, 84vh); }
+  .mars-stage { width: min(40vw, 62vh); }
 }
 @media (max-width: 860px) {
   body { --page-gutter: 48px; }
@@ -960,7 +959,6 @@ body[data-theme='light'] .code-block { border-color: rgba(20, 20, 25, 0.16); }
   .now-wrap { padding-top: 48px; }
   .note-reader-head h1 { font-size: 32px; }
   .note-reader-meta { font-size: 10.5px; }
-  .note-reader-cover { border-radius: 10px; }
   .note-reader-content { font-size: 16.5px; line-height: 1.72; }
   .note-reader-content h2 { font-size: 24px; margin-top: 38px; }
   .article-content :not(pre) > code { white-space: normal; overflow-wrap: anywhere; word-break: break-word; }

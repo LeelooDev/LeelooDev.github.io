@@ -4,8 +4,6 @@ date: 2026-07-28
 group: iOS 开发
 groupOrder: 1
 noteOrder: 1
-cover: /images/note-corebluetooth-connection-debugging-cover.svg
-coverAlt: 手绘风格的蓝牙已连接图标
 ---
 
 在 iOS 蓝牙开发中，最难排查的通常不是扫描不到设备，而是连接状态在系统、业务层和界面之间不同步。这份笔记记录我处理设备连接异常时固定会走的一套顺序。

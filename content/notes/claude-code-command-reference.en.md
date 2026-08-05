@@ -1,7 +1,6 @@
 ---
 title: Claude Code Command Reference
 group: Claude Code
-coverAlt: A hand-drawn terminal window
 ---
 
 Don't memorise the list. Index it by "where am I stuck right now" and your hands will find the command when it matters. What follows is ordered by moment of use, not alphabetically.
