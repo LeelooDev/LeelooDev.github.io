@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1942 809" width="1942" height="809" role="img">
+  <title>本地 Markdown 知识库的检索层</title>
+  <desc>抽象示意图：左侧一叠 Markdown 文档汇入中间的索引层，右侧分出词法与向量两条召回线，经融合后收敛成一条以行号引用结尾的线</desc>
+
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b0d11"/>
+      <stop offset="0.55" stop-color="#101319"/>
+      <stop offset="1" stop-color="#161a21"/>
+    </linearGradient>
+    <linearGradient id="sheet" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1b1f27"/>
+      <stop offset="1" stop-color="#14171d"/>
+    </linearGradient>
+    <radialGradient id="halo" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect x="0" y="0" width="1942" height="809" fill="url(#bg)"/>
+
+  <g stroke="#ffffff" stroke-opacity="0.035" stroke-width="1">
+    <path d="M80 0V809M160 0V809M240 0V809M320 0V809M400 0V809M480 0V809M560 0V809M640 0V809M720 0V809M800 0V809M880 0V809M960 0V809M1040 0V809M1120 0V809M1200 0V809M1280 0V809M1360 0V809M1440 0V809M1520 0V809M1600 0V809M1680 0V809M1760 0V809M1840 0V809M1920 0V809"/>
+    <path d="M0 80H1942M0 160H1942M0 240H1942M0 320H1942M0 400H1942M0 480H1942M0 560H1942M0 640H1942M0 720H1942"/>
+  </g>
+
+  <ellipse cx="1470" cy="405" rx="380" ry="300" fill="url(#halo)"/>
+
+  <!-- 左：一叠 Markdown 文档 -->
+  <g>
+    <rect x="170" y="252" width="206" height="286" rx="12" fill="url(#sheet)" stroke="#333944" stroke-width="1.6"/>
+    <rect x="208" y="233" width="206" height="286" rx="12" fill="url(#sheet)" stroke="#3b424e" stroke-width="1.6"/>
+    <rect x="246" y="214" width="206" height="286" rx="12" fill="#1e232b" stroke="#525a68" stroke-width="1.8"/>
+    <g fill="#8b93a1">
+      <rect x="278" y="250" width="104" height="11" rx="5.5"/>
+    </g>
+    <g fill="#4d5563">
+      <rect x="278" y="284" width="142" height="8" rx="4"/>
+      <rect x="278" y="308" width="118" height="8" rx="4"/>
+      <rect x="278" y="332" width="136" height="8" rx="4"/>
+    </g>
+    <g fill="#6f7887">
+      <rect x="278" y="366" width="86" height="9" rx="4.5"/>
+    </g>
+    <g fill="#4d5563">
+      <rect x="278" y="398" width="142" height="8" rx="4"/>
+      <rect x="278" y="422" width="106" height="8" rx="4"/>
+      <rect x="278" y="446" width="130" height="8" rx="4"/>
+    </g>
+    <g stroke="#6f7887" stroke-width="1.6">
+      <path d="M262 284V340" stroke-opacity="0.75"/>
+      <path d="M262 398V454" stroke-opacity="0.75"/>
+    </g>
+  </g>
+
+  <path d="M480 357H614" stroke="#5c6474" stroke-width="2"/>
+  <path d="M604 349l16 8-16 8z" fill="#5c6474"/>
+
+  <!-- 中：索引层 -->
+  <g>
+    <rect x="646" y="248" width="252" height="218" rx="18" fill="#181c23" stroke="#4a5261" stroke-width="1.8"/>
+    <g fill="#3f4653">
+      <circle cx="700" cy="300" r="6"/><circle cx="748" cy="300" r="6"/><circle cx="796" cy="300" r="6"/><circle cx="844" cy="300" r="6"/>
+      <circle cx="700" cy="348" r="6"/><circle cx="796" cy="348" r="6"/><circle cx="844" cy="348" r="6"/>
+      <circle cx="700" cy="396" r="6"/><circle cx="748" cy="396" r="6"/><circle cx="844" cy="396" r="6"/>
+    </g>
+    <g fill="#e6e9ee">
+      <circle cx="748" cy="348" r="7.5"/>
+      <circle cx="796" cy="396" r="7.5"/>
+    </g>
+    <rect x="686" y="428" width="172" height="7" rx="3.5" fill="#39404c"/>
+  </g>
+
+  <!-- 两路召回 -->
+  <path d="M898 330C1000 330 1054 254 1150 254H1318" stroke="#7d8695" stroke-width="2.4" fill="none"/>
+  <path d="M898 392C1000 392 1054 556 1150 556H1318" stroke="#535c6b" stroke-width="2.4" fill="none"/>
+
+  <g fill="#0b0d11" stroke="#8d96a5" stroke-width="2.4">
+    <circle cx="1150" cy="254" r="10"/>
+    <circle cx="1246" cy="254" r="10"/>
+  </g>
+  <g fill="#0b0d11" stroke="#5b6472" stroke-width="2.4">
+    <circle cx="1150" cy="556" r="10"/>
+    <circle cx="1246" cy="556" r="10"/>
+  </g>
+
+  <!-- 融合 -->
+  <path d="M1318 254C1394 254 1400 405 1444 405" stroke="#7d8695" stroke-width="2.4" fill="none"/>
+  <path d="M1318 556C1394 556 1400 405 1444 405" stroke="#535c6b" stroke-width="2.4" fill="none"/>
+
+  <circle cx="1470" cy="405" r="42" fill="#11141a" stroke="#9aa3b2" stroke-width="2.6"/>
+  <circle cx="1470" cy="405" r="15" fill="#e6e9ee"/>
+
+  <!-- 收敛为一条带行号的引用 -->
+  <path d="M1512 405H1672" stroke="#c7cdd7" stroke-width="2.6"/>
+  <path d="M1662 396l18 9-18 9z" fill="#c7cdd7"/>
+
+  <g>
+    <path d="M1706 344V466" stroke="#c7cdd7" stroke-width="3.2"/>
+    <g fill="#8b93a1">
+      <rect x="1726" y="352" width="128" height="9" rx="4.5"/>
+      <rect x="1726" y="382" width="96" height="9" rx="4.5"/>
+    </g>
+    <g fill="#e6e9ee">
+      <rect x="1726" y="412" width="146" height="9" rx="4.5"/>
+    </g>
+    <g fill="#8b93a1">
+      <rect x="1726" y="442" width="110" height="9" rx="4.5"/>
+    </g>
+    <text x="1726" y="500" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="21" fill="#6f7887" letter-spacing="1.5">#L412-L428</text>
+  </g>
+</svg>
