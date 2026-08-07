@@ -2,53 +2,61 @@
 title: 从零搭建个人智能体（二）
 date: 2026-08-06T18:00:00
 category: code
-tags: [Agent, RAG, 多格式, PDF, OCR, Electron, SQLite, TypeScript]
+tags: [Agent, RAG, 文档解析, PDF, OCR, Electron, SQLite, TypeScript]
 cover: /images/personal-agent-02-cover.jpg
 coverAlt: 高空俯瞰的雪山全景，逆光的云海从山脊间漫过，右侧太阳压在云层边缘
-excerpt: 系列第二篇：把知识库从「仅 Markdown」扩到八种格式，而不动检索层一行代码。核心是一层派生 Markdown——每个 PDF、Excel、PPT 确定性地转成一份带锚点表的文本，行号照旧、引用照旧可验证，locator 只负责把「派生文本第 338 行」翻译成「原件第 12 页」。以及三次把整个 Utility 进程打死的打包事故：tesseract 的 worker 路径、pdfjs 的身份误判、一个从没被用到的 canvas 可选依赖。
-dek: 扩格式最难的不是解析，是让「可验证引用」这件事在六种新格式上继续成立——而它的敌人叫非确定性。
+excerpt: 一个知识库 Agent 只支持 Markdown 时，"引用可验证"是一句轻松的承诺——因为行号就是行号。加进 PDF、Excel、PPT、截图之后，这句承诺要么被守住，要么被悄悄掏空。这篇讲怎么用一层派生文本把八种坐标系压回一种，让检索与验证一行不改；讲确定性为什么是这类系统唯一会致命且不报错的失效模式；也讲三次单元测试全绿、应用却连界面都渲染不出来的事故。
+dek: 扩展文档格式，难的从来不是解析。难的是让"这条引用能被验证"在六种新格式上继续成立。
 ---
 
-> 这是「从零搭建个人智能体」的第二篇。[第一篇](/posts/personal-agent-from-scratch-01)讲检索层：一堆 `.md` 文件怎么变成 Agent 能可靠引用的知识源。这一篇讲**格式层**：当用户的资料根本不是 Markdown 时——是 PDF、是 Excel、是从微信导出的 PPT、是随手截的图——那条「带精确行号、可点击、可验证」的引用链路要怎么活下来。
+> 这是「从零搭建个人智能体」的第二篇。[第一篇](/posts/personal-agent-from-scratch-01)讲检索层：一个本地 Markdown 目录怎么变成 Agent 能可靠引用的知识源。这一篇讲**文档格式层**——当用户的资料根本不是 Markdown 时，那条"带精确行号、可点击、可验证"的引用链路要怎么活下来。
 >
-> 改造涉及 157 个文件、8633 行新增，但检索层（切块、FTS5、向量、融合、精排）**一行未改**。这不是巧合，是这一版唯一的设计目标。
+> 文中的取舍与数字都来自一个真实的桌面应用（Electron + 本地 SQLite，全部数据留在本机），但要讲的问题跟具体技术栈无关：**任何一个想让模型引用文档、且希望这个引用是可信的系统，都会遇到同一组问题。**
 
-## 一、问题不是「支持 PDF」，是「PDF 里没有第 340 行」
+## 一、支持 PDF，难的不是解析 PDF
 
-第一篇里反复强调的产品命脉是一句话：**每一条引用都要能被验证。** 具体到实现，是这么一条判据（`agent-runtime/src/citations.ts`）：
+先说清楚要守住的东西是什么。
 
-> 模型给出的引用 `笔记.md#L12-L28` 成立，当且仅当这个行号区间与本轮工具实际读过的证据区间**相交**。
+在只有 Markdown 的第一版里，"引用可验证"是这么实现的：模型回答时给出的每一条引用都带一个行号区间，比如 `笔记.md#L12-L28`。这条引用成立的判据只有一句话：
 
-它优雅的地方在于极其笨：它只认行号，不关心语义、不问模型是否真的读懂了，也无法被"听起来很有道理"骗过。整个系统的可信度就压在这一个不等式上。
+> **这个行号区间，与本轮里工具实际读过的那些区间相交。**
 
-然后用户说：我的资料在 PDF 里。
+判据笨得可以，但正因为笨，它有几个别的方案给不了的性质：它不问模型是否真的理解了内容、不做语义相似度打分、也无法被"听起来很有道理"骗过。用户点开引用，看到的就是模型声称自己看过的那几行。整个系统的可信度就压在这一个不等式上。
 
-这句话炸掉的不是解析能力，是那条判据的**坐标系**。一份 PDF 文件里没有"第 340 行"这回事——它有页、有渲染顺序、有绘制指令，唯独没有行。Excel 有工作表和单元格，PPT 有幻灯片，扫描件连文字都没有。八种格式，八种互不兼容的坐标系。
+然后现实来了：用户的资料在 PDF 里、在 Excel 里、在从会议群下载的 PPT 里、在随手截的图里。
 
-最直觉的做法是让契约层认识所有坐标系：`Chunk` 上加 `page?`、加 `sheet?`、加 `cell?`、加 `slide?`，引用验证按格式分支。我推演了一遍这条路要动的东西：
+这句话炸掉的不是解析能力——解析 PDF 有成熟的库。它炸掉的是那条判据的**坐标系**。一份 PDF 文件里没有"第 340 行"这回事，它有页、有绘制指令、有渲染顺序，唯独没有行。Excel 有工作表和单元格坐标，PPT 有幻灯片序号，扫描件连文字都没有。八种格式，八种互不兼容的坐标体系。
+
+最直觉的做法，是让引用结构认识所有坐标系：加一个可选的 `page`、加一个 `sheet`、加一个 `cell`、加一个 `slide`，然后引用验证按格式分支处理。我把这条路要动的东西列了一遍：
 
 | 要改的地方 | 后果 |
 |---|---|
-| `ChunkSchema` / `SearchHitSchema` / `CitationSchema` | 三个 `strictObject` 过 IPC，主/渲染/utility 三侧同步炸开 |
+| 检索结果、引用、文件元信息三个数据结构 | 它们都要跨进程传递、都有严格 schema 校验，等于三个进程同时改 |
 | 引用验证 | 从一个不等式变成八个分支，每个分支各有边界条件 |
-| 切块器 | 行号不再是通用坐标，得为每种格式各写一套"这段属于哪里" |
-| 证据集 | `EvidenceEntry` 要能表达八种区间的相交 |
-| 来源面板 / 引用预览 | 八种展示分支 |
+| 切块（把文档切成检索单元）| 行号不再是通用坐标，得为每种格式各写一套"这段属于哪里" |
+| 证据记录 | 要能表达八种区间的"相交" |
+| 界面的引用预览与来源面板 | 八种展示分支 |
 
-代价还不止是工作量。真正致命的是：**引用验证从此有了八条判据。** 一条判据可以被反复审视、被测试穷尽、被我在半年后还记得住；八条判据里迟早有一条会写错，而写错的表现是"引用看起来正常但其实没被验证过"——这种 bug 不会崩溃、不会报错，只会安静地把整个产品的信任基础掏空。
+工作量还不是最要命的。真正致命的是：**引用验证从此有了八条判据。**
 
-所以这一版的第一个决策，是把八种坐标系**压回一种**。
+一条判据可以被反复审视、被测试穷尽、被我半年后还记得住。八条判据里迟早有一条会写错，而写错的表现是——引用看起来完全正常，只是它没有真的被验证过。这种缺陷不崩溃、不报错、不在任何日志里留痕，只会安静地把整个产品的信任基础掏空。
 
-## 二、派生 Markdown 层：一切收敛为「带锚点的文本」
+所以第一个决定是：**不泛化坐标系，把八种压回一种。**
 
-决策写在计划的 D2：
+## 二、派生文本层：让下游根本不知道格式的存在
 
-> **多格式架构 = 派生 Markdown + 来源定位符（sourceLocator）。** 不为每种格式泛化坐标系。转换层把一切收敛为「带标题的 Markdown 文本」，下游整条链路（切块 / 大纲 / 检索 / read 工具 / 引用验证）按原样工作；定位符只是 chunk 上的**展示与跳转元数据**，不参与检索与验证逻辑。
+思路一句话说得完：每个非纯文本文件，被**确定性地**转换成一份 Markdown 文本，外加一张对照表——记录"这份文本的第几行，对应原件的哪个位置"。这份转换出来的文本（下文叫**派生文本**）存进索引库，之后被切块、被检索、被引用的都是它。
 
-一句话：每个非纯文本文件被**确定性地**转换成一份派生 Markdown，外加一张「派生文本第几行 ↔ 原件哪个位置」的锚点表。派生 Markdown 存进索引库，之后被切块、被检索、被引用的都是它。
+那张对照表叫**锚点表**，一条锚点长这样：
+
+```ts
+{ startLine: 338, endLine: 352, locator: { kind: "page", page: 12 } }
+```
+
+意思是：派生文本的第 338 到 352 行，来自原件的第 12 页。而 `locator`（来源定位符）只做一件事——**给人看**。它不参与检索、不参与打分，尤其**不参与引用验证**。
 
 <figure class="diagram">
-<svg viewBox="0 0 880 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="多格式数据流：知识库目录分成原生文本格式与派生格式两路，原生文本直接作为被索引的文本，派生格式经转换器产出派生 Markdown 与锚点表存入 derived_docs 表；两路汇合进入未经改动的标题感知切块器，chunk 的行区间与锚点表求交得到 locator，之后 FTS5 与向量入库、四件只读工具、引用验证全部零改动">
+<svg viewBox="0 0 880 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="多格式数据流：知识库目录分成纯文本格式与需要转换的格式两路，纯文本直接作为被索引的文本，其余格式经转换器产出派生文本与锚点表存入数据库；两路汇合进入未经改动的标题感知切块，chunk 的行区间与锚点表求交得到来源定位符，之后全文检索与向量入库、只读工具、引用验证全部零改动">
 <defs>
 <marker id="pa2f1-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#9a9da6"/></marker>
 </defs>
@@ -57,49 +65,49 @@ dek: 扩格式最难的不是解析，是让「可验证引用」这件事在六
 
 <rect x="28" y="56" width="180" height="86" rx="10" fill="#25262b"/>
 <text x="118" y="80" text-anchor="middle" font-size="12.5" fill="#ffffff" font-weight="700">本地知识库目录</text>
-<text x="118" y="100" text-anchor="middle" font-size="10.5" fill="#d6d8de">扫描 · watcher · sha-256</text>
-<text x="118" y="118" text-anchor="middle" font-size="10.5" fill="#d6d8de">判据只有一处：</text>
-<text x="118" y="133" text-anchor="middle" font-size="10.5" fill="#d6d8de" font-family="monospace">formatForPath()</text>
+<text x="118" y="100" text-anchor="middle" font-size="10.5" fill="#d6d8de">扫描 · 文件监听 · 内容哈希</text>
+<text x="118" y="120" text-anchor="middle" font-size="10.5" fill="#d6d8de">「这个文件要不要索引」</text>
+<text x="118" y="135" text-anchor="middle" font-size="10.5" fill="#d6d8de">全项目只有一处判定</text>
 
 <rect x="250" y="48" width="230" height="52" rx="9" fill="#ffffff" stroke="#9a9da6" stroke-width="1.5"/>
-<text x="365" y="68" text-anchor="middle" font-size="11.5" fill="#25262b" font-weight="700">原生文本格式</text>
-<text x="365" y="87" text-anchor="middle" font-size="10.5" fill="#6b6e76">.md · .markdown · .txt　源文即文本</text>
+<text x="365" y="68" text-anchor="middle" font-size="11.5" fill="#25262b" font-weight="700">纯文本格式</text>
+<text x="365" y="87" text-anchor="middle" font-size="10.5" fill="#6b6e76">.md · .markdown · .txt　源文件即被索引的文本</text>
 
 <rect x="250" y="112" width="230" height="86" rx="9" fill="#f6f6f8" stroke="#25262b" stroke-width="1.6"/>
-<text x="365" y="133" text-anchor="middle" font-size="11.5" fill="#25262b" font-weight="700">派生格式 → 转换器</text>
+<text x="365" y="133" text-anchor="middle" font-size="11.5" fill="#25262b" font-weight="700">其余格式 → 转换器</text>
 <text x="365" y="152" text-anchor="middle" font-size="10.5" fill="#6b6e76">.pdf · .docx · .xlsx · .pptx</text>
 <text x="365" y="168" text-anchor="middle" font-size="10.5" fill="#6b6e76">.html · .png/.jpg/.jpeg/.webp</text>
-<text x="365" y="188" text-anchor="middle" font-size="10.5" fill="#25262b">产出：派生 Markdown ＋ 锚点表</text>
+<text x="365" y="188" text-anchor="middle" font-size="10.5" fill="#25262b">产出：派生文本 ＋ 锚点表</text>
 
 <line x1="208" y1="88" x2="246" y2="74" stroke="#9a9da6" stroke-width="1.5" marker-end="url(#pa2f1-arrow)"/>
 <line x1="208" y1="110" x2="246" y2="140" stroke="#9a9da6" stroke-width="1.5" marker-end="url(#pa2f1-arrow)"/>
 
 <rect x="250" y="212" width="230" height="40" rx="8" fill="#ffffff" stroke="#e3e4e8" stroke-width="1.4"/>
-<text x="365" y="237" text-anchor="middle" font-size="10.5" fill="#6b6e76" font-family="monospace">derived_docs 表（文本+锚点+版本）</text>
+<text x="365" y="237" text-anchor="middle" font-size="10.5" fill="#6b6e76">派生文本表（文本 + 锚点 + 解析器版本）</text>
 <line x1="365" y1="198" x2="365" y2="208" stroke="#9a9da6" stroke-width="1.5" marker-end="url(#pa2f1-arrow)"/>
 
 <rect x="530" y="56" width="322" height="196" rx="10" fill="#ffffff" stroke="#25262b" stroke-width="1.6"/>
-<text x="691" y="80" text-anchor="middle" font-size="12" fill="#25262b" font-weight="700">以下全部零改动（第一篇造的那套）</text>
+<text x="691" y="80" text-anchor="middle" font-size="12" fill="#25262b" font-weight="700">以下全部零改动（第一版就有的东西）</text>
 <rect x="552" y="94" width="278" height="34" rx="7" fill="#25262b"/>
 <text x="691" y="116" text-anchor="middle" font-size="11" fill="#ffffff">标题感知切块 · 行号精确到行</text>
 <rect x="552" y="136" width="278" height="34" rx="7" fill="#ffffff" stroke="#9a9da6" stroke-width="1.3"/>
-<text x="691" y="158" text-anchor="middle" font-size="11" fill="#25262b">FTS5 + 向量 · RRF 融合 · 精排</text>
+<text x="691" y="158" text-anchor="middle" font-size="11" fill="#25262b">全文检索 + 向量 · 融合 · 精排</text>
 <rect x="552" y="178" width="278" height="34" rx="7" fill="#ffffff" stroke="#9a9da6" stroke-width="1.3"/>
-<text x="691" y="200" text-anchor="middle" font-size="11" fill="#25262b">四件只读工具 · 大纲 · 证据集</text>
+<text x="691" y="200" text-anchor="middle" font-size="11" fill="#25262b">四件只读工具 · 大纲 · 证据记录</text>
 <rect x="552" y="220" width="278" height="24" rx="6" fill="#f6f6f8" stroke="#e3e4e8" stroke-width="1"/>
 <text x="691" y="236" text-anchor="middle" font-size="10.5" fill="#25262b" font-weight="600">引用验证：行区间 ∩ 证据区间（判据一个字没动）</text>
 <line x1="480" y1="130" x2="526" y2="130" stroke="#9a9da6" stroke-width="1.5" marker-end="url(#pa2f1-arrow)"/>
 <line x1="480" y1="74" x2="526" y2="90" stroke="#9a9da6" stroke-width="1.5" marker-end="url(#pa2f1-arrow)"/>
 
 <rect x="150" y="292" width="580" height="66" rx="10" fill="#f6f6f8" stroke="#25262b" stroke-width="1.4"/>
-<text x="440" y="315" text-anchor="middle" font-size="12" fill="#25262b" font-weight="700">唯一的新增计算：chunk 行区间 ∩ 锚点表 → locator</text>
-<text x="440" y="336" text-anchor="middle" font-size="10.5" fill="#6b6e76" font-family="monospace">locatorForLineRange(anchors, startLine, endLine) → {kind:"page", page:12}</text>
-<text x="440" y="352" text-anchor="middle" font-size="10.5" fill="#6b6e76">没有相交的锚点就返回 none —— 宁可不显示页码，也不显示一个猜的页码</text>
+<text x="440" y="315" text-anchor="middle" font-size="12" fill="#25262b" font-weight="700">唯一的新增计算：切块的行区间 ∩ 锚点表 → 来源定位符</text>
+<text x="440" y="336" text-anchor="middle" font-size="10.5" fill="#6b6e76">第 338–352 行 ∩ 锚点表 → 第 12 页</text>
+<text x="440" y="354" text-anchor="middle" font-size="10.5" fill="#6b6e76">没有相交的锚点就返回「无」—— 宁可不显示页码，也不显示一个猜的页码</text>
 <line x1="365" y1="252" x2="365" y2="288" stroke="#9a9da6" stroke-width="1.5" marker-end="url(#pa2f1-arrow)"/>
 
 <rect x="150" y="382" width="278" height="86" rx="10" fill="#ffffff" stroke="#9a9da6" stroke-width="1.5"/>
 <text x="289" y="404" text-anchor="middle" font-size="11.5" fill="#25262b" font-weight="700">检索与验证看到的</text>
-<text x="289" y="426" text-anchor="middle" font-size="10.5" fill="#6b6e76" font-family="monospace">报告.pdf#L338-L352</text>
+<text x="289" y="426" text-anchor="middle" font-size="10.5" fill="#6b6e76">报告.pdf#L338-L352</text>
 <text x="289" y="446" text-anchor="middle" font-size="10.5" fill="#6b6e76">派生文本的行号，参与判定</text>
 <text x="289" y="462" text-anchor="middle" font-size="10.5" fill="#6b6e76">——它不知道自己来自 PDF</text>
 
@@ -114,32 +122,19 @@ dek: 扩格式最难的不是解析，是让「可验证引用」这件事在六
 <figcaption>转换层是唯一知道格式存在的地方；它之下的一切按 Markdown 原样工作</figcaption>
 </figure>
 
-这个架构的收益是可以逐条点名的：切块器零改动、大纲零改动、FTS5 与向量入库零改动、四件工具的输出契约零改动、**引用验证零改动**。新增的只有转换层本身，和一次「行区间与锚点求交」的计算。
+收益可以逐条点名：切块零改动、大纲零改动、全文检索与向量入库零改动、四件工具的输出格式零改动、**引用验证零改动**。整个改动 157 个文件、8600 多行，而检索层一行没动。
+
+新增的只有转换层本身，以及一次"行区间与锚点求交"的计算。
 
 而它的代价只有一条，但这一条必须说清楚。
 
-### 2.1 行号与 locator 是两个量纲
+### 2.1 行号和页码，是两个量纲
 
 派生文本的第 338 行，在原件里**不存在**。用户拿着这个数字去 PDF 里翻，翻不到。
 
-这正是「可验证引用」的反面——一个看起来精确、实则指向虚空的坐标。所以 locator 不是锦上添花的展示优化，它是**必做项**：界面必须同时给出「第 12 页」与「由 PDF 提取」角标，把"你看到的文字是提取出来的、排版与原件有差异"这件事说明白。
+这正是"可验证引用"的反面——一个看起来精确、实则指向虚空的坐标。所以来源定位符不是锦上添花的展示优化，它是必做项：界面必须同时给出「第 12 页」和「由 PDF 提取」角标，把"你看到的文字是提取出来的、排版跟原件有差异"这件事说明白。
 
-这条纪律在三层各落一次，而且共用同一份文案（`describeSourceLocator` 放在契约层，因为三个进程都要说这句话）：
-
-```ts
-// packages/contracts/src/source.ts —— 定位符 → 给人看的短语
-export function describeSourceLocator(locator: SourceLocator): string {
-  switch (locator.kind) {
-    case "none":  return "";
-    case "page":  return locator.pageEnd > locator.page
-      ? `第 ${locator.page}–${locator.pageEnd} 页` : `第 ${locator.page} 页`;
-    case "sheet": { /* 「销售明细 · 第 137 行」 */ }
-    case "slide": { /* 「第 3 页幻灯片」 */ }
-  }
-}
-```
-
-放在契约层而不是渲染层，是因为**三个进程都要说这句话**：Utility 的 `read_document` 要把它写进给模型看的头部、Renderer 的引用 chip 与来源面板要显示它。三处各写一份的结果必然是「第 12 页」「P12」「页 12」三种说法——而用户会以为那是三种不同的东西。
+这条纪律要在三个地方各落一次：给模型看的工具输出、界面上的引用标签、来源面板。而三处必须共用同一份文案生成函数——三处各写各的，结果必然是「第 12 页」「P12」「页 12」三种说法，而用户会以为那是三种不同的东西。
 
 给模型看的那份长这样：
 
@@ -150,58 +145,54 @@ export function describeSourceLocator(locator: SourceLocator): string {
 （正文…）
 ```
 
-头部同时给行号、页码、提取来源，三样都来自结构化字段而不是猜测。不这么写的后果很具体：模型会把 `#L338` 照抄给用户。
+头部同时给行号、页码、提取来源，三样都来自结构化字段而不是猜测。不这么写的后果很具体：**模型会把 `#L338` 照抄给用户。**
 
-### 2.2 唯一的分岔：原生文本格式
+### 2.2 唯一保留的例外：纯文本
 
-架构里只保留了一个 if，写在 D10：
+架构里只留了一个分支：`.md` / `.markdown` / `.txt` 这三种，源文件本身就是被切块、被引用、被预览的那份文本，不产生派生文本。
 
-- **原生文本格式**（`.md` / `.markdown` / `.txt`）：源文件本身就是被切块、被引用、被预览的那份文本，**不进** `derived_docs`，行号与源文件逐行对应。
-- **派生格式**（html / docx / xlsx / pptx / pdf / image）：经转换器产出派生 Markdown，行号指向派生文本。
+留这个例外有实际理由：`.txt` 的行号就是用户在自己编辑器里看到的行号。跳到第 42 行，看到的就是引用里的那一行——这是最强的可验证性，不该为了架构统一而放弃。
 
-留这个分岔是有理由的：`.txt` 的行号就是用户在自己编辑器里看到的行号。跳到第 42 行，看到的就是引用里的那一行——这是最强的可验证性，不该为了架构统一而放弃。
+有意思的是 `.txt` 并**不需要**为它单开一条切块路径。它照走 Markdown 的切块逻辑：纯文本里恰好以 `#` 开头的行会被当成标题，后果只是多一层标题路径，行号一字不差。而为它单开一条路，会立刻产生第二份"哪一行属于哪一块"的判定——那才是真风险。
 
-有意思的是 `.txt` **不需要**为它单开一条切块路径。它照走 `chunkMarkdown`：纯文本里恰好以 `#` 开头的行会被当成标题，后果只是多一层标题路径，行号一字不差。而为 txt 单开一条路会立刻产生第二份「哪一行属于哪一块」的判定——那才是真风险。
+## 三、真正难的地方：找出所有偷偷读源文件的代码
 
-## 三、三处判定点收口：这次改造真正难的地方
+架构图画完只花了半天。改造的时间几乎全耗在一件事上：**把所有"直接去磁盘上读这个文件"的地方找出来。**
 
-架构图画完只用了半天，改造花掉的时间几乎全在一件事上：**找出所有"偷偷读源文件"的地方。**
+改造前，"这个文件的正文是什么"这个问题，在代码里有三个独立答案：
 
-改造前，"这个文件的正文是什么"这个问题在代码里有**三个**独立答案：
-
-| 位置 | 干什么 | 对 PDF 会怎样 |
+| 谁在读 | 干什么 | 遇到 PDF 会怎样 |
 |---|---|---|
-| `knowledge-tools` 的 `readKbFile` | Agent 读原文 | 读到二进制字节 |
-| `agent-runtime/src/citation-slice.ts` | 引用摘要取数 | 读到二进制字节 |
-| `apps/desktop/.../file-service.ts` | 界面引用预览 | 扩展名闸门直接拒绝 |
+| Agent 的读文件工具 | 把原文给模型看 | 读到一堆二进制字节 |
+| 引用摘要生成 | 从引用区间里截一段文字出来展示 | 读到一堆二进制字节 |
+| 界面的引用预览 | 用户点击引用时弹出原文 | 扩展名闸门直接拒绝打开 |
 
-三处对 Markdown 都是对的，所以它们平安共存了整个第一版。而 chunk 的行号指的是**派生文本**的行号——于是同一条引用的"第 340 行"，在这三处会分别渲染成一堆乱码、一段错位的文字、和一个空预览。
+三处对 Markdown 都是对的，所以它们平安共存了整个第一版。而切块的行号指的是**派生文本**的行号——于是同一条引用的"第 340 行"，在这三处会分别渲染成一堆乱码、一段错位的文字、和一个空预览。
 
-**这三行是执行期勘察时补进计划表的。**原计划表只列了「引用验证」一行，而验证本身只比对行号区间，反而完全不用改。真正会读磁盘的那两处漏掉了。这件事本身值得记一笔：架构图上画得出来的东西通常不难，难的是那些没画在图上、却在运行时真的碰了文件系统的代码。
+**这三处里有两处是执行到一半才发现的。** 我最初的改造清单上只写了"引用验证"，而验证本身只比对行号区间，反而完全不用改；真正会碰文件系统的那两处，一开始压根没在清单里。这件事本身值得记一笔：**架构图上画得出来的东西通常不难，难的是那些没画在图上、却在运行时真的读了磁盘的代码。**
 
-修法是把正文取数收口成一个端口：
+修法是把"取文档正文"收口成一个端口，全项目只此一家：
 
 ```ts
-// packages/knowledge-index/src/document-text.ts
-export interface DocumentTextPort {
-  read(relPath: string, options?: DocumentReadOptions): DocumentTextResult;
+interface DocumentTextPort {
+  read(relPath: string, options?: ReadOptions): DocumentTextResult;
 }
 ```
 
-规则只有一条：原生文本格式读源文件，派生格式读 `derived_docs` 里**索引时刻**的派生文本。后者是关键——那是切块时用的同一份文本，与 chunk 行号恒一致；源文件之后被改动由 watcher 触发重索引，派生文本与 chunk 原子替换，不存在中间态。
+规则只有一条：纯文本格式读源文件，其余格式读数据库里**索引那一刻**存下的派生文本。后者是关键——那是切块时用的同一份文本，与行号恒一致；源文件之后被改动，由文件监听触发重新索引，派生文本与切块结果原子替换，不存在中间态。
 
-这个端口有两个设计细节值得单独说，因为它们都是"看起来可以更优雅、实际上不能"的地方：
+这个端口有两个设计细节，都属于"看起来可以更优雅、实际上不能"：
 
-**它是同步的。** `agent-runtime` 的引用验证在 `agent_end` 的同步路径上产出结果，而底下两条路本来就都同步（`node:sqlite` 全同步、源文件是 `readFileSync`）。做成异步只会逼调用方在事件回调里 await。
+**它是同步的。** 引用验证跑在事件回调的同步路径上，而底下两条路本来就都同步（SQLite 的同步 API、`readFileSync`）。做成异步只会逼调用方在事件回调里 `await`。
 
-**它返回结果类型而不抛异常。** 三个消费方要把失败翻译成三种完全不同的东西：工具要 `KnowledgeToolError` 加可枚举的 code，界面预览要一句不含绝对路径的中文，引用摘要要"静默返回 null 且不影响引用成立"。抛异常会逼它们去 match 消息文本。
+**它返回结果对象而不抛异常。** 三个消费方要把失败翻译成三种完全不同的东西：工具需要一个带错误码的结构化失败（模型要据此决定下一步做什么），界面预览需要一句不含绝对路径的中文，引用摘要需要"静默返回空，且不影响引用成立"。抛异常会逼它们去匹配异常消息的文本——那是最脆的一种耦合。
 
-同一条"收口"的思路还落在另外两处：
+同一条"收口"思路还落在另外两处。
 
-**扩展名判定**收进契约层的一张表。它其实是一条产品契约——同时决定扫描器扫什么、watcher 认什么、`list_knowledge_files` 列什么、`read_document` 读什么、界面预览允许打开什么。放在契约层还有个实际好处：扫描器不必为了认识 `.pdf` 而去依赖 pdfjs。
+**第一处，"这个文件要不要索引"只留一个判定点。** 一张扩展名到格式的映射表，放在所有进程共享的类型定义层：
 
 ```ts
-const EXTENSION_FORMATS: Readonly<Record<string, SourceFormat>> = {
+const EXTENSION_FORMATS = {
   ".md": "markdown", ".markdown": "markdown", ".txt": "text",
   ".html": "html", ".htm": "html",
   ".docx": "docx", ".xlsx": "xlsx", ".pptx": "pptx", ".pdf": "pdf",
@@ -209,33 +200,39 @@ const EXTENSION_FORMATS: Readonly<Record<string, SourceFormat>> = {
 };
 ```
 
-表里**没有** `.doc` / `.xls` / `.ppt`。老二进制 Office 格式的解析是无底洞，不在表内 = 扫描时按普通文件忽略，不产生错误记录——这是 D5 的范围裁剪在代码里的样子。
+它同时决定了：扫描器扫什么、文件监听认什么、列文件工具列什么、读文件工具读什么、界面预览允许打开什么。放在共享类型层还有个实际好处——扫描器不必为了认识 `.pdf` 而去依赖 PDF 解析库。
 
-**增量索引的快路径**从「hash 未变即跳过」改成「hash 未变**且** parserVersion 未变」：
+表里没有 `.doc` / `.xls` / `.ppt`。老的二进制 Office 格式解析是个无底洞，不在表内 = 扫描时按普通文件忽略，连错误记录都不产生。
+
+**第二处，增量索引的跳过条件多加了一项。** 原本是"内容哈希没变就跳过重新解析"，现在是"哈希没变**且**解析器版本没变"：
 
 ```ts
 const unchanged =
   existing.mtimeMs === mtimeMs &&
   existing.contentHash === contentHash &&
-  existing.parserVersion === parserVersion &&   // ← D6 新增
-  (!derived || this.#store.hasDerivedDoc(relPath));
+  existing.parserVersion === parserVersion &&   // ← 新增这一条
+  (!derived || store.hasDerivedDoc(relPath));
 ```
 
-少了那一条会怎样：我升级 pdfjs、派生文本的行数变了，但源文件 hash 没变，于是快路径跳过重转换——用户手里的旧引用继续指向旧行号，而库里的文本已经是新的。**引用漂移不会报错，只会静静地指错地方。**
+少了这一条会怎样：我升级了 PDF 解析库，派生文本的行数变了，但源文件哈希没变，于是快路径跳过重新转换——用户手里的旧引用继续指向旧行号，而库里的文本已经是新的。**引用漂移不会报错，只会静静地指错地方。**
 
-## 四、确定性：这套架构唯一会致命的失效模式
+于是每个转换器都带一个手写的版本号，任何会改变输出的实现或依赖变更都必须让它 +1。这是一条靠人守的纪律，但它至少写在类型里（是必填字段），而不是写在文档里。
 
-派生 Markdown 层有一个前提条件，整套设计都压在它上面：
+## 四、确定性：这类系统唯一会致命且不报错的失效模式
 
-> **同一份字节 + 同一个 `parserVersion` ⇒ 逐字节相同的派生 Markdown。**
+派生文本这套架构有一个前提，整个设计都压在它上面：
 
-一旦派生文本会漂移，已经发出去的引用就会指向不存在的行。这是唯一一种能让「可验证引用」这条命脉失效、而且**全程不报任何错**的方式。所以转换器有三条不可协商的纪律，写在 `types.ts` 的文件头，也写进了每个转换器的测试：
+> **同一份字节 + 同一个解析器版本 ⇒ 逐字节相同的输出。**
 
-1. 输出里不许出现时间戳、随机 id、绝对路径、以及 `Map` 迭代序之外的不确定顺序；
-2. 解析库版本在 `package.json` 里**锁死到补丁位**（`pdfjs-dist: "6.2.108"`、`mammoth: "1.12.0"`、`exceljs: "4.4.0"`——没有 `^`），升版本必须同时 bump `parserVersion`；
-3. 每个转换器的测试都要有一条「同输入跑两遍，输出全等」的断言。
+一旦派生文本会漂移，已经发出去的引用就会指向不存在的行。这是唯一一种能让"引用可验证"失效、而且**全程不报任何错**的方式。
 
-第 1 条比听起来更容易违反。举一个真实的例子：xlsx 的日期单元格，最自然的写法是 `value.toLocaleString()`——而它的输出**随时区变**。同一份表在北京和在洛杉矶索引出来的派生文本不同，两台机器上的同一条引用指向不同的行。所以这里必须是 `toISOString()`：
+所以转换器有三条不可协商的纪律：
+
+1. 输出里不许出现时间戳、随机 id、绝对路径，以及任何依赖遍历顺序的不确定排序；
+2. 解析库版本在依赖清单里**锁死到补丁位**（是 `"6.2.108"`，不是 `"^6.2.108"`），升版本必须同时抬解析器版本号；
+3. 每个转换器的测试里都要有一条"同一份输入跑两遍，输出必须全等"的断言。
+
+第 1 条比听起来更容易违反。一个真实的例子：Excel 的日期单元格，最自然的写法是 `value.toLocaleString()`——而它的输出**随时区变**。同一份表格在北京和在洛杉矶索引出来的派生文本不同，于是两台机器上的同一条引用指向不同的行。所以这里必须是 `toISOString()`：
 
 ```ts
 function primitiveToText(value: unknown): string {
@@ -244,21 +241,25 @@ function primitiveToText(value: unknown): string {
 }
 ```
 
+这类地雷还有几颗：`Object.keys()` 的顺序在某些结构上不保证、`Map` 的插入序取决于遍历方式、文件路径进了输出就意味着换台机器结果就变。它们的共同点是**在本机测试里 100% 通过**。
+
 ### 4.1 行号记账只允许有一处
 
-锚点表有三条不变量：**覆盖全文、按 `startLine` 升序、区间互不重叠**。
+锚点表有三条不变量：**覆盖全文、按起始行升序、区间互不重叠**。
 
-六个转换器如果各自维护 `currentLine` 计数器，等于把同一段易错逻辑抄六遍。而这类 off-by-one 在测试里**极难被发现**：输出看起来完全正常，只是页码差一页。所以行号只在 `DerivedDocBuilder` 里加，转换器只说「接下来这些行属于第 3 页」：
+六个转换器如果各自维护一个"当前写到第几行"的计数器，等于把同一段易错逻辑抄六遍。而这类差一位的错误在测试里**极难被发现**：输出看起来完全正常，只是页码差了一页。
+
+所以行号只在一个地方加——一个共用的派生文档构造器。转换器只负责说"接下来这些行属于第 3 页"：
 
 ```ts
-export class DerivedDocBuilder {
-  /** 开一个新的定位段：从下一行起的内容都归 locator。 */
+class DerivedDocBuilder {
+  /** 开一个新的定位段：从下一行起的内容都归这个 locator。 */
   section(locator: SourceLocator): void {
     this.#closeSection();
     this.#open = { locator, startLine: this.#lines.length + 1 };
   }
 
-  /** 追加一行。触顶后静默丢弃并记账 —— 说明由 finish 统一写出。 */
+  /** 追加一行。触顶后静默丢弃但记账 —— 截断说明由 finish 统一写出。 */
   appendLine(line = ""): void {
     if (this.#truncatedAt !== null) return;
     const cost = line.length + (this.#lines.length === 0 ? 0 : 1);
@@ -268,9 +269,10 @@ export class DerivedDocBuilder {
 
   #closeSection(): void {
     const endLine = this.#lines.length;
-    // 没有显式 section() 就直接 append 的转换器（html/docx/image）在这里被兜住：
-    // 补一条覆盖 1..N 的 none 锚点，"覆盖全文"这条不变量对所有转换器一致成立
-    const open = this.#open ?? (endLine > 0 ? { locator: NO_SOURCE_LOCATOR, startLine: 1 } : null);
+    // 从不调 section() 的转换器（HTML、Word、图片——它们的原件没有比行号更细的坐标）
+    // 在这里被兜住：自动补一条覆盖 1..N 的「无定位符」锚点。
+    // 于是"锚点覆盖全文"这条不变量对所有转换器一致成立，不必逐个记得写。
+    const open = this.#open ?? (endLine > 0 ? { locator: NO_LOCATOR, startLine: 1 } : null);
     this.#open = null;
     if (open === null || endLine < open.startLine) return;
     this.#anchors.push({ locator: open.locator, startLine: open.startLine, endLine });
@@ -278,82 +280,86 @@ export class DerivedDocBuilder {
 }
 ```
 
-最后那个 `#closeSection` 的兜底是我比较满意的一处：HTML、docx、图片这三种格式的原件**没有比行号更细的坐标**，它们从不调 `section()`。与其要求每个转换器"记得写一条覆盖全文的 none 锚点"，不如让不变量在构造器里自动成立——**依赖纪律的地方越少，纪律被违反的次数越少。**
+最后那个兜底是我比较满意的一处。与其要求每个转换器"记得写一条覆盖全文的锚点"，不如让不变量在构造器里自动成立——**依赖人守纪律的地方越少，纪律被违反的次数越少。**
 
-写这个 builder 时踩到过一个一行之差的坑，值得单独拿出来：
+写这个构造器时踩到过一个一行之差的坑，很能说明这类 bug 的性格：
 
 ```ts
-// pdf.ts 的分页循环
-builder.appendBlankLine();                                  // ← 必须在前
-builder.section({ kind: "page", page: pageNumber, ... });    // ← 必须在后
+// PDF 的分页循环
+builder.appendBlankLine();                          // ← 必须在前
+builder.section({ kind: "page", page: pageNumber }); // ← 必须在后
 builder.appendLine(`## 第 ${pageNumber} 页`);
 ```
 
-**先补分隔空行、再开新段**，空行因此归前一页。反过来写的话，切块器按 `##` 标题切出的 chunk 会把那一行空行算进上一页的块里，而它属于下一页的锚点——于是本该是「第 2 页」的引用会被合并成「第 2–3 页」。差一行，页码就不精确了；而这种错误在任何 diff 里都看不出来。
+**先补分隔空行、再开新段**，空行因此归上一页。反过来写的话，切块按 `##` 标题切出来的块会把那行空行算进上一页的块里，而它属于下一页的锚点——于是本该是「第 2 页」的引用，会被合并显示成「第 2–3 页」。
 
-### 4.2 锚点求交：`none` 不投票
+差一个空行，页码就不精确了。而这种错误在任何 diff 里都看不出来，在任何异常里也不会出现。
 
-从 chunk 的行区间得出 locator 的规则有四条，其中第二条是唯一一条不显然的：
+### 4.2 求交时，"没有坐标"不等于"否决坐标"
+
+从一个切块的行区间得出它的来源定位符，规则有四条，其中第二条是唯一一条不显然的：
 
 ```ts
-export function locatorForLineRange(anchors, startLine, endLine): SourceLocator {
+function locatorForLineRange(anchors, startLine, endLine): SourceLocator {
   const overlapping = /* 与 [startLine, endLine] 有交集的锚点 */;
-  if (overlapping.length === 0) return NO_SOURCE_LOCATOR;      // 规则 1：宁可不显示，也不猜
+  if (overlapping.length === 0) return NO_LOCATOR;      // 规则 1：宁可不显示，也不猜
 
-  // 规则 2：none 退出投票 —— 它的意思是"这几行没有比行号更细的坐标"，
-  //         而不是"这几行没有坐标"，不该否决同一 chunk 里真实存在的页码
+  // 规则 2：「无定位符」的锚点退出投票 —— 它的意思是"这几行没有比行号更细的坐标"，
+  //         而不是"这几行没有坐标"，不该否决同一个块里真实存在的页码
   const typed = overlapping.filter((e) => e.anchor.locator.kind !== "none");
-  if (typed.length === 0) return NO_SOURCE_LOCATOR;
+  if (typed.length === 0) return NO_LOCATOR;
 
-  const merged = mergeHomogeneousLocators(...);                // 规则 3：同类合并成区间
+  const merged = mergeHomogeneous(typed);               // 规则 3：同类合并成区间
   return merged ?? /* 规则 4：重叠行数最多者胜 */;
 }
 ```
 
-规则 2 的场景来自 xlsx：`## 工作表名` 这行标题是 `none`（它是"这张表叫什么"，不是表里的第几行），紧随其后的数据行才带 sheet 坐标。而切块器会把标题与前几行数据切进同一个 chunk。不排除 `none` 的话，这个 chunk 会因为"异质"退化，用户看到的就是一个没有行号的裸引用——**明明有精确坐标，却因为一行标题丢掉了。**
+规则 2 的场景来自 Excel：`## 工作表名` 这行标题没有行坐标（它是"这张表叫什么"，不是表里的第几行），紧随其后的数据行才带工作表行号。而切块会把标题和前几行数据放进同一个块。
 
-规则 1 反过来也一样重要：锚点表有洞时，后果是"这段引用没有页码"，而**不是**"这段被标了错误的页码"。前者是可接受的降级，后者不是。
+不排除"无定位符"的话，这个块会因为"锚点异质"而退化，用户看到的就是一个没有行号的裸引用——**明明有精确坐标，却因为一行标题丢掉了。**
 
-## 五、六个转换器，六种硬骨头
+规则 1 反过来一样重要：锚点表万一有洞，后果是"这段引用没有页码"，而**不是**"这段被标了错误的页码"。前者是可以接受的降级，后者是在骗人。
+
+## 五、六种格式，六种硬骨头
 
 架构定完，剩下的是实打实的解析工作。挑几处有代表性的说。
 
 ### 5.1 PDF：绘制顺序不是阅读顺序
 
-`getTextContent()` 给的是一堆带变换矩阵的文本片段，顺序是**绘制顺序**。直接拼接，一份双栏论文会变成：
+PDF 解析库给出的是一堆带变换矩阵的文本片段，顺序是**绘制顺序**。直接拼起来，一份双栏论文会变成：
 
 > 左栏第一句 右栏第一句 / 左栏第二句 右栏第二句 …
 
-两栏的句子交替穿插，整页语义被打散。而更糟的是**模型会照着这份文本引述出根本不存在的句子**——它拼出来的每一句都是"原文里有的字"，只是顺序被打乱了。这种输出比乱码危险得多，因为它看起来完全正常。
+两栏的句子交替穿插，整页的语义被打散。而更糟的是**模型会照着这份文本引述出根本不存在的句子**——它拼出来的每个字都是原文里的字，只是顺序被打乱了。这种输出比乱码危险得多，因为它看起来完全正常，而且能通过行号验证。
 
-所以行重建是：**先分栏，再在每一栏内部按 y 聚行、行内按 x 排序**。
+所以行重建的顺序是：**先分栏，再在每一栏内部按基线聚成行、行内按横坐标排序**。
 
 <figure class="diagram">
-<svg viewBox="0 0 860 330" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="PDF 双栏页面的处理：左侧是直接按绘制顺序拼接导致左右栏句子交错穿插的错误结果，右侧是先在页面中段 30% 到 70% 区间采样 40 个候选切线位置、取横跨片段最少者作为天沟，再按跨栏、左栏、右栏三组分别重建行的正确结果">
+<svg viewBox="0 0 860 330" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="PDF 双栏页面的处理：左侧是直接按绘制顺序拼接导致左右栏句子交错穿插的错误结果，右侧是先在页面中段 30% 到 70% 区间采样 40 个候选切线位置、取横跨片段最少者作为栏间空白，再按跨栏、左栏、右栏三组分别重建行的正确结果">
 <defs>
 <marker id="pa2f2-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#9a9da6"/></marker>
 </defs>
 <rect x="0" y="0" width="860" height="330" fill="#ffffff"/>
 <text x="430" y="26" text-anchor="middle" font-size="14" font-weight="700" fill="#25262b">分栏检测：找一条横跨片段最少的竖线</text>
 
-<text x="200" y="56" text-anchor="middle" font-size="12" fill="#25262b" font-weight="700">不分栏 · 按 y 聚行的结果</text>
+<text x="200" y="56" text-anchor="middle" font-size="12" fill="#25262b" font-weight="700">不分栏 · 直接按基线聚行</text>
 <rect x="60" y="70" width="280" height="120" rx="8" fill="#ffffff" stroke="#e3e4e8" stroke-width="1.4"/>
-<text x="200" y="92" text-anchor="middle" font-size="10.5" fill="#6b6e76" font-family="monospace">检索层的成败不在于 而在于每一次改动</text>
-<text x="200" y="112" text-anchor="middle" font-size="10.5" fill="#6b6e76" font-family="monospace">用了哪个向量库， 都能被一把尺子证伪</text>
-<text x="200" y="132" text-anchor="middle" font-size="10.5" fill="#6b6e76" font-family="monospace">同一条基线上的左右两栏被并进同一行</text>
-<text x="200" y="160" text-anchor="middle" font-size="11" fill="#25262b" font-weight="600">每个字都是原文里的字</text>
-<text x="200" y="178" text-anchor="middle" font-size="11" fill="#25262b" font-weight="600">但没有一句是原文里的句</text>
+<text x="200" y="94" text-anchor="middle" font-size="10.5" fill="#6b6e76">检索层的成败不在于　而在于每一次改动</text>
+<text x="200" y="114" text-anchor="middle" font-size="10.5" fill="#6b6e76">用了哪个向量库，　　都能被一把尺子证伪</text>
+<text x="200" y="136" text-anchor="middle" font-size="10.5" fill="#6b6e76">同一条基线上的左右两栏被并进同一行</text>
+<text x="200" y="162" text-anchor="middle" font-size="11" fill="#25262b" font-weight="600">每个字都是原文里的字</text>
+<text x="200" y="180" text-anchor="middle" font-size="11" fill="#25262b" font-weight="600">但没有一句是原文里的句</text>
 
 <text x="640" y="56" text-anchor="middle" font-size="12" fill="#25262b" font-weight="700">先分栏 · 逐栏重建</text>
 <rect x="500" y="70" width="280" height="120" rx="8" fill="#f6f6f8" stroke="#25262b" stroke-width="1.5"/>
-<line x1="640" y1="88" x2="640" y2="182" stroke="#25262b" stroke-width="1.2" stroke-dasharray="4 3"/>
-<text x="640" y="84" text-anchor="middle" font-size="9.5" fill="#25262b" font-family="monospace">天沟</text>
-<rect x="512" y="92" width="256" height="16" rx="3" fill="#25262b"/>
-<text x="640" y="104" text-anchor="middle" font-size="9.5" fill="#ffffff">① 跨栏组（标题 / 摘要）先输出</text>
-<rect x="512" y="116" width="118" height="60" rx="4" fill="#ffffff" stroke="#9a9da6" stroke-width="1.2"/>
-<text x="571" y="150" text-anchor="middle" font-size="10" fill="#25262b">② 整个左栏</text>
-<rect x="650" y="116" width="118" height="60" rx="4" fill="#ffffff" stroke="#9a9da6" stroke-width="1.2"/>
-<text x="709" y="150" text-anchor="middle" font-size="10" fill="#25262b">③ 整个右栏</text>
+<line x1="640" y1="90" x2="640" y2="182" stroke="#25262b" stroke-width="1.2" stroke-dasharray="4 3"/>
+<text x="640" y="86" text-anchor="middle" font-size="9.5" fill="#25262b">栏间空白</text>
+<rect x="512" y="94" width="256" height="16" rx="3" fill="#25262b"/>
+<text x="640" y="106" text-anchor="middle" font-size="9.5" fill="#ffffff">① 跨栏组（标题 / 摘要）先输出</text>
+<rect x="512" y="118" width="118" height="58" rx="4" fill="#ffffff" stroke="#9a9da6" stroke-width="1.2"/>
+<text x="571" y="151" text-anchor="middle" font-size="10" fill="#25262b">② 整个左栏</text>
+<rect x="650" y="118" width="118" height="58" rx="4" fill="#ffffff" stroke="#9a9da6" stroke-width="1.2"/>
+<text x="709" y="151" text-anchor="middle" font-size="10" fill="#25262b">③ 整个右栏</text>
 
 <line x1="345" y1="130" x2="495" y2="130" stroke="#9a9da6" stroke-width="1.5" marker-end="url(#pa2f2-arrow)"/>
 
@@ -361,193 +367,257 @@ export function locatorForLineRange(anchors, startLine, endLine): SourceLocator 
 <text x="420" y="234" text-anchor="middle" font-size="11.5" fill="#25262b" font-weight="700">三条准入，全过才切；认不出来就当单栏</text>
 <text x="420" y="256" text-anchor="middle" font-size="10.5" fill="#6b6e76">① 页面片段 ≥ 8（少于此谈不上分栏）　② 横跨切线的片段 ≤ 20%（否则那是单栏的正常行）</text>
 <text x="420" y="274" text-anchor="middle" font-size="10.5" fill="#6b6e76">③ 两侧各占 ≥ 25% 片段（否则只是一个居右的页码或边注）</text>
-<text x="420" y="296" text-anchor="middle" font-size="10.5" fill="#25262b" font-weight="600">单栏文档被当双栏拦腰劈开，比双栏文档被当单栏顺序不佳，糟糕得多</text>
+<text x="420" y="296" text-anchor="middle" font-size="10.5" fill="#25262b" font-weight="600">单栏文档被误判成双栏拦腰劈开，比双栏文档被当单栏顺序不佳，糟糕得多</text>
 </svg>
 <figcaption>在页面 30%–70% 区间采 40 个候选位置，取横跨片段最少的那条线</figcaption>
 </figure>
 
-算法本身不复杂：双栏页面在天沟处的横跨数接近 0，单栏页面在任何位置都有一大堆横跨，两者差得极远，根本不需要精细调参。真正花时间的是三条准入条件和那句「认不出来就当单栏」——**误判的两个方向代价完全不对称**，所有阈值都往保守一侧调。
+算法本身不难：双栏页面在栏间空白处的"横跨片段数"接近 0，单栏页面在任何位置都有一大堆横跨，两者差得极远，根本不需要精细调参。真正花时间的是那三条准入条件和最后那句"认不出来就当单栏"——**误判的两个方向代价完全不对称**，所以所有阈值都往保守一侧调。
 
 PDF 这条路上还有几处，每一处都是被真实文件教出来的：
 
-**中文之间不能补空格。** 行内拼接要靠 x 间距判断词边界，而字宽只能用「字高 × 字数」粗略近似——对方块字系统性偏小。不加 CJK 判断，「知识库」会被拆成「知 识 库」，而那恰好会把 FTS5 的 unigram 预处理（第一篇讲过）喂成一团噪声。
+**中文之间不能补空格。** 行内拼接要靠横向间距判断词边界，而字宽只能用"字高 × 字数"粗略近似——这个近似对方块字系统性偏小。不加中日韩字符判断的话，「知识库」会被拆成「知 识 库」，而这恰好会把中文全文检索的分词预处理喂成一团噪声。
 
-**康熙部首。** macOS 生成的 PDF 里，「一」有相当概率被编码成 `U+2F00 KANGXI RADICAL ONE`——肉眼完全一样，但**检索时是另一个字符**，用户搜「第一节」永远搜不到它。修法是只对康熙部首与 CJK 部首补充这两个区做 NFKC，而不对全文做：全文 NFKC 会把中文全角逗号「，」压成 ASCII 逗号，那是可见的排版劣化。
+**康熙部首。** macOS 生成的 PDF 里，「一」有相当概率被编码成 `U+2F00 KANGXI RADICAL ONE`——肉眼完全一样，但**检索时是另一个字符**，用户搜「第一节」永远搜不到它。修法是只对康熙部首和中日韩部首补充这两个 Unicode 区块做兼容分解，而不对全文做：对全文做会把中文全角逗号「，」压成 ASCII 逗号，那是可见的排版劣化。
 
-**页眉页脚只剔"逐字相同"的行。** 判据刻意保守——只剔逐字相同且出现在至少一半页面的行。带页码的页眉（「第 12 页 / 共 30 页」）因此剔不掉，那是有意的：要剔它就得做数字模糊匹配，而那条路上第一个受害者往往是正文里的编号条款。**留几行噪声用户看得见，删掉一句正文用户永远不知道。**
+**页眉页脚只剔"逐字相同"的行。** 判据刻意保守——只剔逐字相同、且出现在至少一半页面上的行。带页码的页眉（「第 12 页 / 共 30 页」）因此剔不掉，这是有意的：要剔它就得做数字模糊匹配，而那条路上第一个受害者往往是正文里的编号条款。**留几行噪声用户看得见，删掉一句正文用户永远不知道。**
 
-**每页一个 `## 第 N 页` 标题，不去猜文档自己的章节结构。** 从文本层猜标题只能靠字号与粗细的启发式，在中文排版、双栏论文上极不稳定。而猜错的代价不是"少一个标题"——`headingPath` 会进检索文本、会进引用展示，一棵编造的标题树会让模型引述一个原文里根本不存在的章节名。用页码当标题换来三个确定的好处：大纲直接变成页目录（对 PDF 恰恰最有用）、**chunk 永远不跨页**（定位符因此永远精确）、输出完全确定。代价是丢掉原文章节结构——已知且诚实的取舍。
+**每页一个 `## 第 N 页` 标题，不去猜文档自己的章节结构。** 从文本层猜标题只能靠字号和粗细的启发式，在中文排版、双栏论文上极不稳定。而猜错的代价不是"少一个标题"——标题路径会进检索文本、会进引用展示，一棵编造的标题树会让模型引述一个原文里根本不存在的章节名。
 
-### 5.2 XLSX：locator 最有价值的地方
+用页码当标题，换来三个确定的好处：大纲直接变成页目录（对 PDF 恰恰是最有用的导航）、**切块永远不跨页**（于是定位符永远精确）、输出完全确定。代价是丢掉原文的章节结构——这是已知且诚实的取舍。
+
+### 5.2 Excel：定位符最有价值的地方
 
 表格没有标题层级可依，行号就是用户在 Excel 里唯一能定位的坐标。所以这里锚点取**最细粒度**：一个表格行 = 派生文本一行 = 一条锚点。
 
 ```ts
 worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
-  // …取每一列的文本…
+  // …逐列取出单元格文本…
   builder.section({ kind: "sheet", sheet: title, rowStart: rowNumber, rowEnd: rowNumber });
   builder.appendLine(`| ${cells.join(" | ")} |`);
   if (emitted === 0) {
-    builder.appendLine(`| ${Array(cells.length).fill("---").join(" | ")} |`);  // GFM 表头分隔行
+    builder.appendLine(`| ${Array(cells.length).fill("---").join(" | ")} |`);  // 表头分隔行
   }
 });
 ```
 
-一张 2000 行的表会产出 2000 条锚点。看起来奢侈，但方向是对的：切块器按 2000 字切，一个 chunk 通常横跨几十行；若锚点按 50 行一块，引用就只能说"第 100–150 行"，而用户想要的是"第 137 行"。`locatorForLineRange` 会把 chunk 覆盖到的连续锚点合并成区间——**精度只会因为 chunk 变大而下降，不会因为锚点变粗而下降**，所以锚点取最细。
+一张 2000 行的表会产出 2000 条锚点。看起来奢侈，但方向是对的：切块是按 2000 字切的，一个块通常横跨几十行；若锚点按 50 行一段，引用就只能说"第 100–150 行"，而用户想要的是"第 137 行"。求交时会把块覆盖到的连续锚点合并成区间——**精度只会因为块变大而下降，不会因为锚点变粗而下降**，所以锚点取最细的那一档。
 
-另外两处判断：**公式取计算值**（用户搜的是"营收 1200 万"，不是 `=SUM(B2:B13)`，取不到才落公式文本）；**单表 2000 行上限**，挡的是"整个数据库导出成 xlsx"——十万行明细进全文索引，除了把 BM25 的词频统计冲垮之外没有任何用处。
+另外两处判断：**公式取计算值**（用户搜的是"营收 1200 万"，不是 `=SUM(B2:B13)`，取不到计算值才落公式文本）；**单表 2000 行上限**，挡的是"把整个数据库导出成 xlsx"这类文件——十万行明细进全文索引，除了把词频统计冲垮之外没有任何用处。
 
-### 5.3 PPTX：文件名排序会让所有页码都错
+超限必须**可见地**截断：说明写进派生文本尾部（用户在预览里能看到），同时上报到索引状态（用户在索引进度里也能看到）。两处都要——只写进正文的话，一个从不打开预览的用户永远不知道自己的表被截了，只会以为"知识库里没这段"。
 
-`.pptx` 的文本抽取是自研的——用 jszip 解包之后直接对 XML 下手。JS 生态里没有维护良好的 pptx 文本提取库，而真正需要的只有一件事：**按顺序取出所有 `<a:t>` 文本 run**。那是 OOXML DrawingML 里唯一承载可见文字的元素，一条正则就够。自研百来行的收益是输出形态完全由自己决定，确定性不押在第三方身上。
+### 5.3 PPT：按文件名排序会让所有页码都错
+
+PPT 的文本抽取我是自己写的：用 zip 库解包之后直接对 XML 下手。JS 生态里没有维护良好的 pptx 文本提取库，而真正需要的只有一件事——**按顺序取出所有 `<a:t>` 元素里的文本**。那是 OOXML 里唯一承载可见文字的元素，一条正则就够。自己写百来行的收益是：输出形态完全由自己决定，确定性不押在第三方身上。
 
 但有一个坑必须提前知道：
 
 ```ts
-/** ppt/presentation.xml 的 <p:sldIdLst> 按放映顺序列出 r:id，再经 rels 映射到文件 */
+/** 放映顺序在 presentation.xml 的 <p:sldIdLst> 里，再经关系文件映射到具体的 slide 文件 */
 const SLIDE_ID_RE = /<p:sldId\b[^>]*r:id="([^"]+)"/g;
 ```
 
 `ppt/slides/slide10.xml` 在字典序里排在 `slide2.xml` **前面**。按文件名排序会把第 10 页放到第 2 页之前——那意味着**所有页码都是错的**，而页码正是这个转换器唯一要产出的坐标。用户重排过幻灯片时，文件名与放映顺序更是彻底脱钩。
 
-顺带一个共性细节：同一段落内的 run 必须**直接拼接**。Word 和 PPT 会因为改了一个字的颜色就把一句话拆成三个 run，中间插空格会把「知识库」变成「知 识 库」——和 PDF 那条是同一个病。
+顺带一个共性细节：同一段落内的文本片段必须**直接拼接**。Word 和 PPT 会因为改了一个字的颜色，就把一句话拆成三个片段，中间插空格会把「知识库」变成「知 识 库」——和 PDF 那条是同一个病。
 
-### 5.4 DOCX 与 HTML：标题树，以及别报错
+### 5.4 Word 与 HTML：标题树，以及别报错
 
-**docx 的标题树是免费的**：mammoth 按 Word 的**样式**映射（`Heading 1` → `<h1>`），于是 turndown 产出 `#` / `##`，切块器、大纲、`read_document` 的 heading 模式直接就能用。代价是"手动加粗放大字号假装的标题"识别不出来——那是原文档的信息缺失，猜它只会造出一棵不存在的标题树。
+**Word 的标题树是免费的。** 解析库按 Word 的**样式**映射（`标题 1` → `<h1>`），于是转成 Markdown 后天然有 `#` / `##`，切块、大纲、按标题读取直接就能用。代价是"手动加粗放大字号假装的标题"识别不出来——那是原文档的信息缺失，猜它只会造出一棵不存在的标题树。
 
-不用 mammoth 自带的 `convertToMarkdown`，是因为它被上游标注为实验性且**不支持表格**，而 Word 文档里表格占比很高。绕道 HTML 还有个附带好处：html 与 docx 两条路产出的 Markdown 形态完全一致，下游只需要理解一种风格。
+这里绕了一道弯：先转 HTML，再转 Markdown。因为解析库自带的 Markdown 输出器被上游标注为实验性且**不支持表格**，而 Word 文档里表格占比很高。绕道 HTML 还有个附带好处：HTML 和 Word 两条路产出的 Markdown 形态完全一致，下游只需要理解一种风格。
 
-**html 的关键判断是"提不出来时降级，而不是报错"**：Readability 对短页面、纯列表页、单表格页会返回 null（它有最小字数阈值）。那些页面**依然是用户的资料**，不该因为"不像文章"就被踢出知识库，所以降级为整页 `<body>` 转换——噪声多一些，但内容不丢。
+**HTML 的关键判断是"提不出正文时降级，而不是报错"。** 正文提取算法（Firefox 阅读模式那一套）对短页面、纯列表页、单表格页会返回空——它有最小字数阈值。那些页面**依然是用户的资料**，不该因为"不像文章"就被踢出知识库，所以降级为整页转换：噪声多一些，但内容不丢。
 
-真正该报错的只有一种情况：**字节根本解不出文本**。这里的策略是先信 `<meta charset>` 声明、再信 UTF-8，最后按替换字符（U+FFFD）比例判定：
+真正该报错的只有一种情况：**字节根本解不出文本**。策略是先信 `<meta charset>` 声明、再信 UTF-8，最后按替换字符（U+FFFD）的比例判定：
 
 ```ts
 /** 超过 5% 即判定解码失败，而不是把一篇 30% 是问号的文本收进知识库 */
 const MAX_REPLACEMENT_RATIO = 0.05;
 ```
 
-阈值取 5% 不需要精调：正常文本里偶发的损坏字节远低于此，编码猜错时通常在 30% 以上，中间有很宽的安全带。**编码猜错的后果不是报错，是静默产出一整篇乱码**——那份乱码会照常被切块、被检索、被引用。
+阈值取 5% 不需要精调：正常文本里偶发的损坏字节远低于此，编码猜错时通常在 30% 以上，中间有很宽的安全带。这里的风险和别处不同——**编码猜错的后果不是报错，是静默产出一整篇乱码**，而那份乱码会照常被切块、被检索、被引用。
 
 ### 5.5 图片 OCR：为什么不上 ONNX
 
-路线是 D4：**macOS 走系统 Vision 辅助二进制，其余平台 tesseract.js 兜底，明确不上 PaddleOCR / RapidOCR 的 onnxruntime 路线。**
+路线是：**macOS 走系统的 Vision 框架，其余平台用 WASM 版 tesseract 兜底，明确不上 ONNX 系的 OCR 模型（PaddleOCR / RapidOCR 那一类）。**
 
-否决 ONNX 的理由来自第一篇的坑三：`packages/local-models/src/embedder.ts` 的头注释记录过 onnxruntime 原生层在老机器上**静默崩溃**（退出码 5）的前科。那还只是个 384 维的小嵌入模型；OCR 模型重得多，而崩的是**整个 Utility 进程**——用户看到的是"应用突然不响应了"，不是"这张图没索引上"。
+否决 ONNX 的理由来自上一篇踩过的坑：ONNX 运行时的原生层在一台老 Intel Mac 上**静默崩溃**（退出码 5，JS 侧收不到任何异常，因为崩的是原生代码）。那还只是个 384 维的小嵌入模型；OCR 模型重得多，而崩的是**整个后台进程**——用户看到的是"应用突然不响应了"，不是"这张图没索引上"。
 
-Vision 辅助二进制的协议刻意做得极简：**stdin 收图片字节，stdout 逐行吐识别结果**。不走临时文件（省一次落盘，也不给知识库内容留磁盘残留），不走 JSON（少一层解析，行本身就是我们要的结构）。整个 Swift CLI 约 60 行，构建期 swiftc 编译，electron-builder 作 extraResources 捆绑。
+Vision 那条路是一个约 60 行的 Swift 命令行程序，构建时编译、随应用分发。协议刻意做得极简：**标准输入收图片字节，标准输出逐行吐识别结果**。不走临时文件（省一次落盘，也不给知识库内容留磁盘残留），不走 JSON（少一层解析，行本身就是我们要的结构）。
 
-还有一条设计上的坚持：**引擎不可用是一等公民，不是异常。** 没装 Xcode、没有可写目录、断网——这些都很常见。此时图片文件走 `ConvertError("ocr_unavailable")` → `FileMeta.status="error"`，用户在索引错误列表里看到"OCR 引擎不可用"，而不是图片被静默跳过、然后困惑于"我明明放了截图进去为什么搜不到"。
+还有一条设计上的坚持：**引擎不可用是一等公民，不是异常。** 没装开发工具、没有可写目录、断网——这些都很常见。此时图片文件会被标成"解析失败"，用户在索引错误列表里看到一句"OCR 引擎不可用"，而不是图片被静默跳过、然后困惑于"我明明放了截图进去，为什么搜不到"。
 
-同理，两个引擎都不可用时抛错而不是返回空文本：**空文本会让这张图以"识别出零个字"的姿态进索引，与"识别不了"是完全不同的两件事。**
+同理，两个引擎都不可用时抛错而不是返回空文本：**空文本会让这张图以"识别出零个字"的姿态进索引，而"识别出零个字"与"识别不了"是完全不同的两件事。**
 
-## 六、三次把整个进程打死的事故
+## 六、让图里的字也能被搜到
 
-前面五节是"应该怎么做"。这一节是"实际发生了什么"——三次事故的共同点是：**单元测试全绿，应用起不来。**
+上面这些做完，格式支持看起来齐了。然后一本真实的书把一个更深的洞捅了出来。
 
-### 6.1 事故一：tesseract 的 worker 脚本，在打包产物里不存在
+《基于大模型的 RAG 应用开发与优化》，523 页、40 万字符，文本层提取完整。但第 44 页那个 curl 示例是一张**嵌在正文里的截图**——文字层里没有它。检索不到，Agent 无从决策，问答答不出来。
 
-现象：选中带图片的知识库，Utility 进程**当场退出**，索引进入崩溃-重启死循环。
+**最阴险的地方是：正文里提到过 curl，显得"读过了"，实际内容静默缺失。** 不报错、不缺页、不留痕，就是答不出来。
 
-根因：tesseract.js 起 worker 时用的是按它自己源码 `__dirname` 拼的相对路径。而本包在应用里被 electron-vite 打进 `out/chunks/`，于是它按 `apps/desktop/worker-script/node/index.js` 去找——找不到，`MODULE_NOT_FOUND` 在 **worker 引导线程里裸抛**，绕过一切 Promise 链，整个进程当场退出。
+这件事确立了一条判断：
 
-配方是 `createRequire` 从真实 node_modules 解析绝对路径：
+> **检索不到的内容，Agent 根本不知道它存在。**
 
-```ts
-export function resolveTesseractWorkerScript(): string | null {
-  try {
-    const require = createRequire(import.meta.url);
-    const packageJson = require.resolve("tesseract.js/package.json");
-    const workerScript = join(dirname(packageJson), "src", "worker-script", "node", "index.js");
-    return existsSync(workerScript) ? workerScript : null;
-  } catch { return null; }
-}
-```
+关键词只活在图片里时，全文检索和向量都永远不会召回那一页；Agent 只能对"已经定位到的页"深挖，无法对"从未见过的内容"做决策。所以**索引时 OCR 打底是地基，让 Agent 现场深挖只能是补充。**
 
-`createRequire` 按 Node 模块规则向上找真实 node_modules，**与调用方被打包到哪无关**。解析不到就返回 null → 引擎判「不可用」→ 图片进索引错误列表，这才是"OCR 失败不拖垮整轮索引"该有的降级。
+实现路线：逐页拿到绘制指令流 → 从中捞出已经解码好的位图 → 统一成 RGB → 手写打包成最小 PNG → 喂给现有的 OCR 引擎 → 识别出的文字以 `【图片 N】` 块拼进该页正文。锚点仍然指整页，所以切块、检索、引用验证还是零改动，引用照落「第 N 页」。
 
-还有一处顺手补的：`available()` 的探测里**也**要查这个脚本存不存在。把探测挡在 spawn 之前——worker 起来了才发现脚本不存在，那是杀进程的裸异常，捕不到。
+PNG 编码器是手写的，四十来行：PNG 的结构就是"签名 + IHDR + IDAT（deflate）+ IEND"四段，而 `zlib` 是 Node 内置的。引一个图像库意味着原生依赖或者几 MB 的纯 JS，而我们只需要"无损装进一个容器"这一件事。附带好处是输出对同一输入逐字节确定，天然满足确定性纪律。
 
-### 6.2 事故二：pdfjs 以为自己在浏览器里
+像素格式归一有两个细节：灰度图要按位展开；带透明通道的图要**在白底上合成**——直接丢掉 alpha 通道的话，一张透明底的截图会变成随机底色，OCR 直接歇菜。还有一道闸门：超过 400 万像素的图**在物化像素之前**就拒绝——4MP 的 RGB 数据已经是 12MB，一页 50 张超大图能把进程内存吃穿。
 
-现象更阴险：索引库里 **6 个 PDF 全部报「文件可能已损坏」**，而同一个文件在命令行下转换完全正常。
+### 6.1 过滤规则：不让花边图标灌满噪声
 
-查下去是两层：
+一份 PDF 里的"图"绝大多数不是内容：项目符号、分隔花边、每页角上的 logo、章节图标。全部送去 OCR 既慢又脏。所以有五条过滤：
 
-**第一层，pdfjs 认错了自己的宿主。** 它在模块求值时算一个 `isNodeJS` 常量，判定式在 `process.versions.electron` 存在且 `process.type !== "browser"` 时得 false——它以为 Electron Utility Process 是有 DOM 的渲染进程。后果是模块顶层的 `new DOMMatrix()` 直接抛 `ReferenceError`（无 DOM 就没这个类）；就算垫上，`getDocument` 还会按浏览器路线要求 `workerSrc` 起 Web Worker，而不是走 Node 的进程内 fake worker。
+- **宽或高小于 64px 的跳过**，静默，不标注（图标不值得占用户一行注意力）；
+- **每页按面积取前 8 张**，超出的计入"未识别：超出上限"；
+- **整份文档上限 500 张**（按内容查重后计）。Vision 实测约 0.2 秒/张，500 张约 100 秒——这是"索引慢一点"而不是"索引卡死"；
+- **同一内容哈希的图，整册只识别一次**；
+- **出现在半数以上页面（至少 4 页）的图，判为装饰整册剔除**——logo 和水印，跟剔页眉页脚是同一个哲学。
 
-**根子是判定，不是缺垫片。** 所以修法对准判定：
+而 OCR 出零个字的图**静默略过**：那是装饰图的常态，不算失败，不该标注。真正的失败才写一行「(本页另有 N 张图片未识别：原因)」，原因用可枚举的稳定短语（引擎不可用 / 超出上限 / 识别失败），不放裸异常文本——那行字会出现在用户能看到的正文里。
+
+### 6.2 三层防线：一个永远不会到来的回调
+
+这部分是整个特性里最难调的地方，也最能说明"用真实文件调试"的价值。
+
+PDF 解析库的图像对象是**异步入仓**的：绘制指令流返回时，图像的解码可能还没完成。同步去取会抛"对象尚未解析"，而回调形式会等它。听起来简单——直到遇上一类**永远不会到来**的回调。
+
+实测形状是这样的：在无渲染的纯提取用法下，跨页共享的大图走的是一条"复制本地图像"的协议，有一类对象在两个对象仓里都**永不注册**。指令流干净收尾，对象就是没了下文。不设上限的话，转换器会在那里挂死。
+
+于是有了三层防线，缺一不可：
+
+1. **单次等待 800 毫秒。** 正常对象的解码消息是毫秒级到达的，800ms 已是百倍余量；
+2. **死对象黑名单。** 跨页共享的死对象（比如一条贯穿全书的装饰横幅）只等第一次，之后同名对象直接放弃；
+3. **文档级累计预算 60 秒。** 兜底封顶。
+
+第 2 层是被真实文件逼出来的。初版只有"单张 2 秒 + 文档预算"两层，结果是：前几十页的死对象把预算烧光，第 55 页那张**完全正常的目标截图**被连坐判死——**预算兜底自己成了新的误伤源。**
+
+同一本书还教了另一件事。那条跨三页共享的死横幅，每页都会刷一条"未识别"标注，523 页刷出 **522 条噪声**。修法很轻：让失败项也带一个跨页身份（用对象 id，加前缀跟内容哈希隔开），于是它自动落进上面那条"出现在半数以上页面 = 装饰"的规则里，整册静默。**522 条降到 0，没有新增任何规则。**
+
+还有一颗埋得很深的雷：扫描书插图最常用的 JBIG2 压缩、以及 JPEG2000，需要给解析库传 WASM 解码器的位置——不传的话，它只 warn 一句"忽略此对象"就把图丢了。而这个参数**必须是普通文件系统路径，不能是 `file://` URL**：在不走 worker 的配置下，取数据的那一层用 `fs.readFile` 直接读，会把 `file://` 字符串当成字面路径，报文件不存在。
+
+这个缺参数在纯文字提取的阶段**潜伏了很久都没暴露**——文字层提取根本不受它影响，只有开始抽图才浮出来。
+
+### 6.3 实测
+
+523 页的书，全书转换 108 秒，产出 289 个图片文字块、29 条真实的失败标注。目标那张截图里的 curl 命令、`/embed`、`inputs`、`Request URL` 全部可检索，引用落在正确的页码上。
+
+也有引擎能力的边界：截图里的「己」被 Vision 识别成了「已」。这类错误没法在应用层修——**它是引擎能力的边界，不是 bug**，能做的只有把它记下来，并且不假装它不存在。
+
+最后一条纪律，是从一开始就定死的：**必须在转换时同步做 OCR，禁止"先入库、之后再补图"。** 派生文本一旦入库，后补内容就会改变行号，已经发出去的引用会全部漂移。代价是带图的大文档索引变慢——进度可见，**不加开关**。一个"要不要 OCR"的开关等于让同一份文档有两种派生文本，那正是确定性纪律要防的事。
+
+## 七、三次把整个进程打死的事故
+
+前面六节是"应该怎么做"。这一节是"实际发生了什么"——三次事故的共同点是：**单元测试全绿，应用起不来。**
+
+它们全都发生在同一层：**打包与进程启动。** 而那一层此前一个断言都没有。
+
+### 7.1 PDF 解析库以为自己在浏览器里
+
+现象很唬人：应用里 **6 个 PDF 全部报「文件可能已损坏」**，而同一个文件在命令行下转换完全正常。
+
+根因是三层，一层套一层。
+
+**第一层，它认错了自己的宿主。** 这个库在模块加载时会算一个"我是不是在 Node 里"的常量，判定式大意是「Electron 版本号存在 且 进程类型不是 browser」→ 判为浏览器环境。而 Electron 的 Utility Process（一个没有 DOM 的后台进程，我们用它跑索引和模型调用）恰好满足这个条件——它被误判成了有 DOM 的渲染进程。
+
+后果是：库跳过了自己的 Node 兼容处理，而它的绘制模块里有一句**模块顶层**的 `new DOMMatrix()`。没有 DOM 就没有这个类，于是 `import` 的一瞬间直接抛 `ReferenceError`。
+
+**第二层，垫片只能治标。** 那个判定不只影响 DOMMatrix，还影响 worker 策略等好几处。所以除了垫 DOMMatrix，还得对准判定本身下手——在 import 的一瞬把进程类型标记摘掉（判定式里唯一可控的那一项），import 完成立即还原：
 
 ```ts
 async function loadPdfjs() {
   installDomMatrixPolyfill();
-  const typeDescriptor = Object.getOwnPropertyDescriptor(process, "type");
-  if (typeDescriptor?.configurable) delete (process as { type?: unknown }).type;
+  const descriptor = Object.getOwnPropertyDescriptor(process, "type");
+  if (descriptor?.configurable) delete (process as { type?: unknown }).type;
   try {
     pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
   } finally {
-    // isNodeJS 已固化成常量，还原不影响后续行为
-    if (typeDescriptor?.configurable) Object.defineProperty(process, "type", typeDescriptor);
+    // 那个"我是不是 Node"已经固化成常量了，还原不影响后续行为
+    if (descriptor?.configurable) Object.defineProperty(process, "type", descriptor);
   }
-  // …
 }
 ```
 
-import 的一瞬把 `process.type` 摘掉（判定式里唯一可控的一项），让 pdfjs 走完整的 Node 适配路线；import 完成立即还原。纯 Node 环境（vitest、脚本）里 `process.type` 本就不存在，这段是无操作——这也解释了为什么单测里一切正常。
+顺带说一下那个 DOMMatrix 垫片：**自己写 40 行，而不是装现成的 canvas 原生模块。** 三条理由——它是原生模块（打包要按架构分发，还有 ONNX 静默崩溃的同类前科）；它在依赖树里只是个可选依赖，安装失败会静默缺席，拿它当运行时正确性的地基等于没有地基；而文本提取这条链路真正用到的只是 2D 仿射矩阵的六个数。
 
-**第二层，workerSrc 的相对缺省值。** pdfjs 在 Node 下把它缺省设为 `"./pdf.worker.mjs"`，相对**运行时模块**。测试里模块就在 node_modules，隔壁真有这个文件；应用里本包被打进 `out/chunks/`，隔壁没有 → fake worker import 失败 → `getDocument` 抛错 → 被映射成「文件可能已损坏」，**全部 PDF 被误伤**。
+垫片只实现库里实际用到的成员，3D、旋转、字符串初始化一概不做——**少实现一个方法，将来库升级用到时是一个响亮的 TypeError，比一个悄悄算错的矩阵好得多。**
 
-和 tesseract 同一个病根、同一个配方：`createRequire` 钉绝对路径。
+**第三层，worker 路径是相对的。** 库在 Node 下把 worker 脚本路径缺省设为 `"./pdf.worker.mjs"`，相对**运行时模块**。测试里模块就在 `node_modules`，隔壁真有这个文件；应用里我们这个包被打包工具塞进了另一个目录，隔壁没有 → worker 加载失败 → 打开文档抛错 → 被映射成「文件可能已损坏」，**所有 PDF 一起陪葬**。
 
-顺带记两个只有真实文件才教得会的：`destroy()` 挂在 `loadingTask` 上而不是 `document` 上（漏掉它，索引一个装满 PDF 的目录是几百 MB 的稳定泄漏）；不传 `wasmUrl` 的话 JBIG2 / JPEG2000 的图一律解不出来，pdfjs 只 warn 一句 "ignoring XObject" 就把图丢了——文字层提取不受影响，所以这个缺参数在纯文字管线里**潜伏了整个阶段没暴露**，直到开始做嵌入图片 OCR 才浮出来。
+修法是从真实的 `node_modules` 解析出绝对路径钉进去：
 
-### 6.3 事故三：一个从没被用到的可选依赖，打死了整个应用
+```ts
+const require = createRequire(import.meta.url);
+const packageJson = require.resolve("pdfjs-dist/package.json");
+const workerPath = join(dirname(packageJson), "legacy", "build", "pdf.worker.mjs");
+```
 
-现象：`npm run dev` 起来后界面**全程白屏**，Utility 连续 5 次重启后判死：
+`createRequire` 按 Node 的模块解析规则向上找真实的 `node_modules`，**与调用方被打包到哪无关**。
+
+### 7.2 同一个配方，OCR 那边也病了两处
+
+**tesseract 的 worker 脚本路径**是同一个病：它按自己源码所在目录拼相对路径，而我们的包被打包到了别处。找不到时，`MODULE_NOT_FOUND` 在 **worker 的引导线程里裸抛**，绕过一切 Promise 链，整个后台进程当场退出，索引进入崩溃-重启死循环。
+
+同样的配方修好，外加一条：**可用性探测里也要查这个脚本存不存在**。把探测挡在启动 worker 之前——worker 起来了才发现脚本不存在，那是个捕不到的裸异常。
+
+**Vision 辅助程序的目录**是另一种形状：调用方传进来的是打包后的资源目录，而开发模式下那个目录里永远没有它（它在仓库的 `resources/` 下）。旧实现拿传入目录**完全覆盖**了兜底逻辑，于是 Vision 明明编译好了却找不到。修法是把它改成候选列表：先试传入目录，再从当前模块位置逐级向上找仓库目录。
+
+这里也不能写死"向上四层"——TypeScript 编译产物和打包产物离仓库根的层数不同，写死的相对路径必然在其中一种布局下失灵。
+
+### 7.3 一个从没被用到的可选依赖，打死了整个应用
+
+现象：开发模式起来后界面**全程白屏**，后台进程连续 5 次重启后被判死：
 
 ```
 Error: Could not resolve "canvas" imported by "linkedom". Is it installed?
-[piagent] utility-event {"event":"host.fatal","error":{"code":"restart_exhausted"}}
+[host.fatal] restart_exhausted
 ```
 
-根因也是两层，而第二层才是真问题：
+根因两层，而第二层才是真问题：
 
-1. **打包层**：`linkedom` 把 `canvas` 声明为 optional peer，自己带了兜底 `try { require("canvas") } catch { require("./canvas-shim.cjs") }`。但打包器会把未安装的 optional peer 换成一个**求值即抛**的存根，而那句 throw 发生在模块图求值阶段，**早于** try 块执行——兜底根本没机会跑。
-2. **架构层**：六个解析库全在模块顶层静态 import，于是 `createDefaultConverters()` 一被调用就把它们全拉进 Utility 的**启动路径**。
+1. **打包层**：那个 DOM 库把 `canvas` 声明为可选依赖，自己带了兜底 `try { require("canvas") } catch { 用内置 shim }`。但打包器会把未安装的可选依赖替换成一个**求值即抛**的存根，而那句 throw 发生在模块求值阶段，**早于** try 块执行——兜底根本没机会跑。
+2. **架构层**：六个解析库全在模块顶层静态 import，于是"创建转换器套装"这个函数一被调用，就把它们全都拉进了后台进程的**启动路径**。
 
 于是——**一个"图片渲染"的可选依赖，打死了一个根本不渲染图片的知识库应用。**
 
 <figure class="diagram">
-<svg viewBox="0 0 860 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="懒加载前后的爆炸半径对比：改造前六个解析库在模块顶层静态导入，任一加载失败都在 Utility 启动路径上炸掉整个进程，界面白屏，utility 入口 14.25 MB；改造后解析库改为内联动态 import，加载失败转成 ConvertError 落进单文件容错通道，只影响那一个文件，utility 入口 311 KB">
+<svg viewBox="0 0 860 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="懒加载前后的爆炸半径对比：改造前六个解析库在模块顶层静态导入，任一加载失败都在后台进程启动路径上炸掉整个进程，界面白屏，入口体积 14.25 MB；改造后解析库改为内联动态导入，加载失败转成一条结构化错误落进单文件容错通道，只影响那一个文件，入口体积 311 KB">
 <rect x="0" y="0" width="860" height="300" fill="#ffffff"/>
 <text x="430" y="26" text-anchor="middle" font-size="14" font-weight="700" fill="#25262b">同一个错误，两种爆炸半径</text>
 
 <rect x="40" y="50" width="360" height="210" rx="10" fill="#ffffff" stroke="#25262b" stroke-width="1.5"/>
 <text x="220" y="74" text-anchor="middle" font-size="12" fill="#25262b" font-weight="700">改造前 · 模块顶层静态 import</text>
 <rect x="62" y="88" width="316" height="30" rx="6" fill="#25262b"/>
-<text x="220" y="108" text-anchor="middle" font-size="10.5" fill="#ffffff" font-family="monospace">createDefaultConverters()</text>
-<text x="220" y="136" text-anchor="middle" font-size="10.5" fill="#6b6e76">→ pdfjs · mammoth · exceljs · linkedom · turndown</text>
-<text x="220" y="153" text-anchor="middle" font-size="10.5" fill="#6b6e76">全部进入 Utility 启动路径</text>
+<text x="220" y="108" text-anchor="middle" font-size="10.5" fill="#ffffff">创建转换器套装（进程启动时调用）</text>
+<text x="220" y="136" text-anchor="middle" font-size="10.5" fill="#6b6e76">→ PDF · Word · Excel · DOM · Markdown 转换</text>
+<text x="220" y="153" text-anchor="middle" font-size="10.5" fill="#6b6e76">五个重依赖全部进入启动路径</text>
 <rect x="62" y="166" width="316" height="34" rx="6" fill="#f6f6f8" stroke="#e3e4e8" stroke-width="1.2"/>
-<text x="220" y="187" text-anchor="middle" font-size="10.5" fill="#25262b">任一加载失败 → 模块求值阶段崩 → 退避重启 ×5 → 判死</text>
+<text x="220" y="187" text-anchor="middle" font-size="10.5" fill="#25262b">任一加载失败 → 模块求值阶段崩 → 重启 ×5 → 判死</text>
 <text x="220" y="222" text-anchor="middle" font-size="11.5" fill="#25262b" font-weight="700">爆炸半径 = 整个进程（界面全程白屏）</text>
-<text x="220" y="244" text-anchor="middle" font-size="10.5" fill="#6b6e76" font-family="monospace">utility 入口 14.25 MB</text>
+<text x="220" y="244" text-anchor="middle" font-size="10.5" fill="#6b6e76">后台进程入口 14.25 MB</text>
 
 <rect x="460" y="50" width="360" height="210" rx="10" fill="#f6f6f8" stroke="#25262b" stroke-width="1.5"/>
 <text x="640" y="74" text-anchor="middle" font-size="12" fill="#25262b" font-weight="700">改造后 · 内联动态 import</text>
 <rect x="482" y="88" width="316" height="30" rx="6" fill="#25262b"/>
-<text x="640" y="108" text-anchor="middle" font-size="10.5" fill="#ffffff" font-family="monospace">loadParser("Excel", () =&gt; import("exceljs"))</text>
+<text x="640" y="108" text-anchor="middle" font-size="10.5" fill="#ffffff">loadParser("Excel", () =&gt; import("exceljs"))</text>
 <text x="640" y="136" text-anchor="middle" font-size="10.5" fill="#6b6e76">解析库只在真的遇到那种文件时才加载</text>
-<text x="640" y="153" text-anchor="middle" font-size="10.5" fill="#6b6e76">失败 → ConvertError → 单文件容错通道</text>
+<text x="640" y="153" text-anchor="middle" font-size="10.5" fill="#6b6e76">加载失败 → 一条结构化转换错误</text>
 <rect x="482" y="166" width="316" height="34" rx="6" fill="#ffffff" stroke="#9a9da6" stroke-width="1.2"/>
-<text x="640" y="187" text-anchor="middle" font-size="10.5" fill="#25262b">FileMeta{status:"error"} · 其余文件照常入库</text>
+<text x="640" y="187" text-anchor="middle" font-size="10.5" fill="#25262b">这个文件标记为解析失败 · 其余照常入库</text>
 <text x="640" y="222" text-anchor="middle" font-size="11.5" fill="#25262b" font-weight="700">爆炸半径 = 这一个文件</text>
-<text x="640" y="244" text-anchor="middle" font-size="10.5" fill="#6b6e76" font-family="monospace">utility 入口 311 KB</text>
+<text x="640" y="244" text-anchor="middle" font-size="10.5" fill="#6b6e76">后台进程入口 311 KB</text>
 </svg>
 <figcaption>把解析库挪出启动路径，同一个加载失败从"整个进程"缩到"这一个文件"</figcaption>
 </figure>
 
-修法两条：解析库一律懒加载，`canvas` 别名到仓库自带的 stub。
+修法两条：解析库一律懒加载；那个可选依赖别名到仓库自带的一个形状兼容的空壳（不真装它——它需要图形库的原生依赖，与"不引原生依赖"这条取舍相悖）。
 
 ```ts
 /**
@@ -563,69 +633,69 @@ export async function loadParser<T>(label: string, load: () => Promise<T>): Prom
 }
 ```
 
-顺带的收益是启动成本：utility 入口从 **14.25 MB 降到 311 KB**，而绝大多数用户的知识库里一个 PDF 都没有。
+顺带的收益是启动成本：后台进程入口从 **14.25 MB 降到 311 KB**，而绝大多数用户的知识库里一个 PDF 都没有。
 
-**但这次事故真正的教训在防线上。** 事故发生时，knowledge-convert 的 57 个用例**全绿**——因为单测直接 import 源码，永远走不到打包与进程启动那条路。所以补的不是更多单测，是两道**读文件**的检查：
+### 7.4 这三次事故真正的教训
 
-- 一条断言 `src` 下没有任何文件静态 import 重解析库（放过 `import type` 与 `() => import()`），并**反证**每个重依赖确实以动态形态出现过。已实测：退回静态导入即判红，还原即绿。
-- 冒烟脚本增两条产物形态检查：产物里不许出现"未解析依赖的抛错存根"；utility 入口 < 1 MB（事故时 14 MB，修好后 0.3 MB，阈值离两边都远）。
+事故发生时，转换层的 57 个单元测试**全绿**。
 
-两条都是纯文件读取，不依赖冷启动 stdout。**测试要跑在缺陷所在的那一层**——这三次事故的缺陷全在打包与进程启动层，而那一层此前一个断言都没有。
+因为单元测试直接 import 源码，永远走不到打包与进程启动那条路。补更多单元测试是没有用的——缺陷不在那一层。
 
-### 6.4 一个不算事故的事故：报告里的数字过期了
+所以补的是两道**读文件**的检查：
 
-改造完跑评估，闸门 34/34、观察 15/23。而上一版报告记的是「闸门 33/33、观察 17/22」——观察题**掉了两道**。
+- 一条断言源码目录下没有任何文件静态 import 重解析库（放过 `import type` 和 `() => import()`），并**反证**每个重依赖确实以动态形态出现过。已实测：退回静态导入即判红，还原即绿；
+- 冒烟脚本增两条产物形态检查：产物里不许出现"未解析依赖的抛错存根"；后台进程入口小于 1 MB（事故时 14 MB，修好后 0.3 MB，阈值离两边都远）。
 
-第一反应当然是"多格式改造弄坏了什么"。但查下去不是：那组 17/22 生成于几次检索相关提交**之后没有重跑**。我用 `git worktree` 在未改动的 HEAD 上原样重跑同一份题库，得到的是 **14/22**，而且 `data-07` / `team-09` / `team-12` 三题在那里也是失败的。
+两条都是纯文件读取，不依赖启动应用、不依赖读 stdout，跑得比任何集成测试都快。
 
-换句话说，多格式改造的净变化只有：题库 +2（均通过）、语料 +1 个 `.txt` 文件。**33/33 → 34/34、14/22 → 15/23，没有任何一题由通过转为失败。**
+**测试要跑在缺陷所在的那一层。** 这句话听起来是废话，但实践中很容易变成"多写点单元测试就安心了"——而这三次事故里，单元测试的覆盖率再高一倍也一次都抓不到。
 
-这件事写进了报告的差异说明。它值得记一笔的原因是：**一份没有重跑过的基线报告，比没有报告更危险**——它会让你把自己的改动归因到一个根本不存在的回归上，然后花两天去"修"一个别人早就改过的东西。
+### 7.5 附带一课：一份没重跑过的基线报告，比没有报告更危险
 
-## 七、还欠缺什么
+改造完跑检索评估，闸门题 34/34、观察题 15/23。而上一版报告记的是「33/33、17/22」——观察题**掉了两道**。
+
+第一反应当然是"多格式改造弄坏了什么"。但查下去不是：那组 17/22 生成于几次检索相关改动**之后没有重跑**。我用 `git worktree` 在未改动的提交上原样重跑同一份题库，得到的是 **14/22**，而且那三道失败题在那里也是失败的。
+
+也就是说，这次改造的净变化只有：题库 +2（均通过）、语料 +1 个 `.txt` 文件。**33/33 → 34/34、14/22 → 15/23，没有任何一题由通过转为失败。**
+
+这件事值得记，是因为它差点让我去"修"一个根本不存在的回归——**一份过期的基线，会把你自己的改动归因到别人早就改过的东西上。**
+
+## 八、还欠缺什么
 
 诚实地列这一版留下的洞：
 
-- **扫描版 PDF（无文本层）不支持。** 需要 pdfjs 在 Node 侧渲染位图，牵出 node-canvas 原生依赖，与"不引原生依赖"的取舍相悖。当前是诚实地落进「索引错误」列表并区分「已加密」与「疑似扫描件」——**两件事用户的应对完全不同**，不能合并成一句"解析失败"。
-- **docx / pptx 的内嵌图片还没 OCR。** PDF 的一期已经落地（下一节），docx / pptx 是二期。当前 docx 的图片被替换成 `[图片]` 占位——用户在预览里看得出"这里原本有张图"，但内容确实没进索引。
-- **双栏 PDF 只承诺段落级顺序。** 跨栏脚注会被提到页面前部（跨栏组先输出），这是已知的次要瑕疵。
-- **带页码的页眉剔不掉。** 见 5.1 的取舍。
-- **Vision 的确定性有一个豁口。** 同机同 macOS 版本输出确定，跨大版本可能漂移。这是接受并记录了的——`parserVersion` 管不到系统框架的版本。
-- **表格进 FTS5 的检索效果没有单独评估。** xlsx 派生出的 GFM 表格在 BM25 下表现如何（大量竖线与短单元格对词频统计的影响），当前只有"引用能落到第几行"的验收，没有独立的检索质量档。
-- **`.doc` / `.xls` / `.ppt` 老二进制格式不做**，Windows 平台的第三个 OCR 实现（`Windows.Media.Ocr`）也还没写——接口是留好的，`OcrEngine` 全链路无一行平台专属逻辑。
+- **扫描版 PDF（完全没有文本层）不支持。** 需要在 Node 侧把页面渲染成位图，牵出原生图形依赖，与"不引原生依赖"的取舍相悖。当前是诚实地落进索引错误列表，并且**区分「已加密」与「疑似扫描件」**——这两件事用户的应对完全不同，不能合并成一句"解析失败"。
+- **Word 和 PPT 里的嵌入图片还没 OCR。** PDF 这条已经落地，另两条是下一期。当前 Word 的图片被替换成 `[图片]` 占位——用户在预览里看得出"这里原本有张图"，但内容确实没进索引。
+- **双栏 PDF 只承诺段落级顺序。** 跨栏的脚注会被提到页面前部（跨栏组先输出），这是已知的次要瑕疵。
+- **带页码的页眉剔不掉**，理由见 5.1 的取舍。
+- **系统 OCR 的确定性有一个豁口。** 同一台机器、同一个系统版本输出确定，跨系统大版本可能漂移。解析器版本号管不到操作系统框架的版本，这个豁口是接受并记录了的。
+- **表格进全文检索的效果没有单独评估。** Excel 派生出的 Markdown 表格在 BM25 下表现如何（大量竖线与短单元格对词频统计的影响），目前只有"引用能落到第几行"的验收，没有独立的检索质量档。
+- **老的二进制 Office 格式不做**；Windows 平台的第三个 OCR 实现（系统自带的 OCR API）也还没写——接口是留好的，整条链路没有一行平台专属逻辑。
 
-## 八、下一步：嵌入图片，以及为什么 GraphRAG 被否决
+## 九、下一步，以及为什么 GraphRAG 被否决
 
-多格式落地之后立刻暴露了一个新问题，而它是被一本真实的书教出来的。
+嵌入图片 OCR 还有两期：Word 和 PPT（它们 zip 包里的图片本来就是完整的 PNG/JPEG 文件，免打包直接喂 OCR），以及一个"让 Agent 现场重跑某页 OCR"的深挖工具。
 
-《基于大模型的 RAG 应用开发与优化》，523 页、40 万字符，文本层提取完整。但第 44 页的 curl 示例是一张**嵌入截图**——文字层里没有它。检索不到、Agent 无从决策、问答答不出来。
+第三期有两条不可协商的红线，值得先写下来：**只读**（不写索引、不改派生文本）；**现场识别出来的文字不在派生文本里，行号验证天然不放行，所以它不得获得引用编号**，必须以"现场识别、不可验证"的身份出现。
 
-**最阴险的地方是：正文里提到过 curl，显得"读过了"，实际内容静默缺失。**
-
-这件事确立了一条判断：**检索不到的内容，Agent 根本不知道它存在。** 关键词只活在图片里时，FTS 和向量永远不会召回那一页；Agent 只能对"已定位的页"深挖，无法对"从未见过的内容"做决策。所以索引时 OCR 打底是地基，agentic 深挖是补充。
-
-一期（PDF 嵌入图片）已经写完，形态是：逐页 `getOperatorList()` 抽已解码像素 → `node:zlib` 手工打包最小 PNG（无新依赖，输出确定）→ 串行喂 OCR → 识别文字以 `【图片 N】` 紧跟该页正文，锚点仍是整页。过滤规则防花边图标灌噪声：小于 64px 跳过、每页按面积取前 8 张、整册上限 200 张、同内容哈希整册只识别一次、出现在半数以上页面的图判为装饰（logo 水印，与剔页眉页脚同哲学）。
-
-有一条纪律是从头就定死的：**必须转换时同步 OCR，禁止"先入库后补图"。** 派生文本一旦入库，后补内容会改行号，已发引用全部漂移。代价是带图大文档索引变慢（Vision 约 0.2–0.5 秒/张），进度可见，**不加开关**——一个"要不要 OCR"的开关等于让同一份文档有两种派生文本。
-
-同期还有一个被否决的方向值得记录：**GraphRAG 暂不接入。**
+顺带说一个被否决的方向：**GraphRAG 暂不接入。**
 
 否决它的不是工作量，是三条：
 
-1. **一票否决当前接入**：图谱建自"已提取的文本"，而提取层的洞（比如上面那张截图）图谱永远不含——对"图里的字答不出"这个目标零帮助。**提取层先行。**
-2. **隐私姿态反转**：建图需要把每个 chunk 过一遍 LLM 抽实体关系，等于全库上传服务商，与「只有检索命中的片段出网」这条承诺冲突，只能显式 opt-in。
-3. **引用纪律**：社区摘要与图节点是模型的二手转述，按既有纪律不进证据集。
+1. **知识图谱建自"已提取的文本"**，而提取层的洞（比如那张 curl 截图）图谱永远不含——对"图里的字答不出来"这个目标零帮助。**提取层必须先行。**
+2. **隐私姿态反转。** 建图需要把每一个文本块都过一遍大模型来抽实体关系，等于全库上传给服务商，与"只有检索命中的片段出网"这条承诺冲突，只能做成显式开关。
+3. **引用纪律。** 社区摘要和图节点是模型的二手转述，按既有纪律不进证据集——它们不能被引用。
 
-将来真要接，正确定位是**检索路由器**——帮 Agent 决定读哪些文档，回答仍然引用真实行号。这个位置不与任何一条现有纪律冲突。
+将来真要接，正确的定位是**检索路由器**：帮 Agent 决定该读哪些文档，而回答仍然引用真实行号。这个位置不与任何一条现有纪律冲突。
 
-## 九、小结
+## 十、小结
 
 这一版最值得带走的三条：
 
-**第一，扩展格式的正确姿势是"收敛"而不是"泛化"。** 面对八种坐标系，加八个字段是最直觉的路，而它会让引用验证从一条判据裂成八条。把一切压回「带锚点的 Markdown」之后，下游整条链路一行未改——**新格式的成本从"改整条链路"降到"写一个转换器"**，这才是这套架构真正的收益。
+**第一，扩展格式的正确姿势是"收敛"而不是"泛化"。** 面对八种坐标系，给数据结构加八个字段是最直觉的路，而它会让引用验证从一条判据裂成八条。把一切压回"带锚点的文本"之后，下游整条链路一行未改——**新格式的成本从"改整条链路"降到"写一个转换器"**。这才是这套架构真正的收益，而不是少写了多少代码。
 
-**第二，这套架构的命门是确定性，而它失效时不报错。** 版本没锁、忘了 bump `parserVersion`、用了 `toLocaleString()`——这三件事的后果都是引用静静地指向不存在的行。所以纪律要么写进类型（`Converter.parserVersion` 是必填字段），要么写进构造器（行号只在 `DerivedDocBuilder` 里加），要么写进测试（同输入跑两遍必须逐字节相同）。**指望自己记得，等于没有纪律。**
+**第二，这类系统的命门是确定性，而它失效时不报错。** 版本没锁、忘了抬解析器版本号、用了 `toLocaleString()`——这三件事的后果都是引用静静地指向不存在的行。所以纪律要么写进类型（版本号是必填字段），要么写进构造器（行号只在一处加），要么写进测试（同输入跑两遍必须逐字节相同）。**指望自己记得，等于没有纪律。**
 
-**第三，三次把进程打死的事故全部发生在打包与进程启动层，而那一层此前一个断言都没有。** 单测直接 import 源码，永远走不到那条路；57 个用例全绿的同时，应用连界面都渲染不出来。补上的两道防线——静态导入形态检查、产物体积阈值——都不是常规意义上的"测试"，它们只是读文件。但它们跑在缺陷真正所在的那一层。
+**第三，缺陷会挑你没有断言的那一层出现。** 三次把进程打死的事故全部发生在打包与启动层，那里此前一个断言都没有；57 个单元测试全绿的同时，应用连界面都渲染不出来。而补上的两道防线——静态导入形态检查、产物体积阈值——甚至算不上常规意义的"测试"，它们只是读文件。但它们跑在缺陷真正所在的那一层。
 
-第一篇的结尾我写过：那些坑没有一个是在设计阶段能想到的，但每一个都是在有 trace、有基准的前提下能被定位的。这一篇要补一句：**当缺陷发生在你的测试根本不经过的那一层时，trace 和基准也救不了你——得先把断言放到那一层去。**
+上一篇的结尾我写过：那些坑没有一个是在设计阶段能想到的，但每一个都是在有 trace、有基准的前提下能被定位的。这一篇要补一句：**当缺陷发生在你的测试根本不经过的那一层时，trace 和基准也救不了你——得先把断言放到那一层去。**
