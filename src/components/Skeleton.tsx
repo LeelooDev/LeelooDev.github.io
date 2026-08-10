@@ -77,19 +77,16 @@ function SectionLabelSkeleton() {
 export function HomeSkeleton() {
   return (
     <div className="page">
-      {/* 三段占位对应 hero 的标签 / 名字 / 入口按钮，右侧圆形占位对应火星舞台。 */}
+      {/* 三段占位对应 hero 的徽章 / 名字 / 入口按钮，跟真实版式一样垂直居中排列。 */}
       <div className="hero">
         <div className="hero-inner">
-          <div className="hero-main">
-            <Sk w={168} h={13} style={{ marginBottom: 22 }} />
-            <Sk w={340} h={84} r={12} style={{ marginBottom: 44 }} />
-            <div style={{ display: 'flex', gap: 12 }}>
-              <Sk w={104} h={36} r={8} />
-              <Sk w={92} h={36} r={8} />
-              <Sk w={92} h={36} r={8} />
-            </div>
+          <Sk w={168} h={26} r={99} style={{ marginBottom: 22 }} />
+          <Sk w={340} h={84} r={12} style={{ marginBottom: 44 }} />
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+            <Sk w={104} h={36} r={8} />
+            <Sk w={92} h={36} r={8} />
+            <Sk w={92} h={36} r={8} />
           </div>
-          <Sk w={300} h={300} r="50%" style={{ flex: 'none', justifySelf: 'center' }} />
         </div>
       </div>
 

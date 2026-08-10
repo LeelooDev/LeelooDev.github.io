@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { PostCard } from '../components/PostCard'
 import { ProjectCard } from '../components/ProjectCard'
 import { HomeSkeleton } from '../components/Skeleton'
-import { MarsScene } from '../components/MarsScene'
+import { GradientWaves } from '../components/GradientWaves'
 import { useI18n } from '../i18n'
 import { postDate, readingMinutes, usePosts, useProfile } from '../lib'
 
@@ -120,24 +120,21 @@ function Hero({ profile }: { profile: Profile }) {
 
   return (
     <div className="hero">
+      <GradientWaves />
       <div className="hero-inner">
-        <div className="hero-main">
-          <div className="hero-badge">{profile.title}</div>
-          <h1 className="hero-name">{profile.name}</h1>
-          <div className="hero-actions">
-            <Link className="btn-primary" to="/about">{t('aboutMe')}</Link>
-            {otherContacts.map((contact) => (
-              <a key={contact.url} className="btn-outline" href={contact.url} target="_blank" rel="noreferrer">
-                {contact.label || contact.type}
-              </a>
-            ))}
-            {emailContact ? (
-              <a className="btn-outline" href={emailContact.url}>{emailContact.label || t('emailFallback')}</a>
-            ) : null}
-          </div>
+        <div className="hero-badge">{profile.title}</div>
+        <h1 className="hero-name">{profile.name}</h1>
+        <div className="hero-actions">
+          <Link className="btn-primary" to="/about">{t('aboutMe')}</Link>
+          {otherContacts.map((contact) => (
+            <a key={contact.url} className="btn-outline" href={contact.url} target="_blank" rel="noreferrer">
+              {contact.label || contact.type}
+            </a>
+          ))}
+          {emailContact ? (
+            <a className="btn-outline" href={emailContact.url}>{emailContact.label || t('emailFallback')}</a>
+          ) : null}
         </div>
-
-        <MarsScene label={t('heroArtworkAlt')} />
       </div>
     </div>
   )
