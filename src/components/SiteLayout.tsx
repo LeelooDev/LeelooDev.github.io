@@ -14,7 +14,9 @@ const NAV_ITEMS: { to: string; key: MessageKey; end?: boolean }[] = [
   { to: '/about', key: 'navAbout' },
 ]
 
-type Theme = 'dark' | 'light'
+// 浅色模式暂时下线，站点只保留暗黑主题。恢复时取消本文件里的主题注释，
+// 并同步恢复 index.html / styles.css / GradientWaves.tsx 里注释掉的浅色代码。
+// type Theme = 'dark' | 'light'
 
 export function SiteLayout() {
   const { lang, toggleLang, t } = useI18n()
@@ -23,8 +25,8 @@ export function SiteLayout() {
   const profile = useProfile()
   // 首帧固定 dark 以匹配预渲染结果，真实值由挂载后的 effect 恢复。背景色不会闪：
   // index.html 里的内联脚本在 hydrate 之前就设好了 body[data-theme]。
-  const [theme, setTheme] = useState<Theme>('dark')
-  const restoredTheme = useRef(false)
+  // const [theme, setTheme] = useState<Theme>('dark')
+  // const restoredTheme = useRef(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
 
@@ -44,16 +46,16 @@ export function SiteLayout() {
     setMobileNavOpen(false)
   }, [pathname])
 
-  useEffect(() => {
-    if (localStorage.getItem('macoazo-theme') === 'light') setTheme('light')
-    restoredTheme.current = true
-  }, [])
+  // useEffect(() => {
+  //   if (localStorage.getItem('macoazo-theme') === 'light') setTheme('light')
+  //   restoredTheme.current = true
+  // }, [])
 
-  useEffect(() => {
-    document.body.dataset.theme = theme
-    // 恢复完成前不要回写，否则首帧的 dark 会覆盖掉用户存的 light。
-    if (restoredTheme.current) localStorage.setItem('macoazo-theme', theme)
-  }, [theme])
+  // useEffect(() => {
+  //   document.body.dataset.theme = theme
+  //   // 恢复完成前不要回写，否则首帧的 dark 会覆盖掉用户存的 light。
+  //   if (restoredTheme.current) localStorage.setItem('macoazo-theme', theme)
+  // }, [theme])
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -107,6 +109,7 @@ export function SiteLayout() {
             <button className="theme-btn lang-btn" title={t('langToggle')} onClick={toggleLang}>
               {lang === 'zh' ? 'EN' : '中'}
             </button>
+            {/* 浅色模式暂时下线，主题切换按钮一并隐藏。
             <button
               className="theme-btn"
               title={t('themeToggle')}
@@ -114,6 +117,7 @@ export function SiteLayout() {
             >
               {theme === 'dark' ? '◐' : '◑'}
             </button>
+            */}
           </div>
         </div>
       </header>

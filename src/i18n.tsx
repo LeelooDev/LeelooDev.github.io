@@ -28,7 +28,8 @@ const MESSAGES = {
   typeArticle: { zh: '文章', en: 'ARTICLE' },
   typeProject: { zh: '项目', en: 'PROJECT' },
   typeNote: { zh: '笔记', en: 'NOTE' },
-  themeToggle: { zh: '切换主题', en: 'Toggle theme' },
+  // 浅色模式暂时下线，切换按钮隐藏；恢复时取消注释。
+  // themeToggle: { zh: '切换主题', en: 'Toggle theme' },
   langToggle: { zh: 'English', en: '中文' },
   footerSitemap: { zh: '站点地图', en: 'SITEMAP' },
   footerElsewhere: { zh: '其他平台', en: 'ELSEWHERE' },

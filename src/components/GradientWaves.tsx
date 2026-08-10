@@ -2,10 +2,11 @@ import { useEffect, useRef } from 'react'
 
 // 移植自 reactbits.dev 的 Gradient Waves 背景（原版依赖 ogl）。
 // 场景只是一个全屏三角形 + raymarching 片元着色器，直接用原生 WebGL2 写省掉整个库。
-// 颜色不走原版的紫色系，从站点的祖母绿 --accent(#10b981) 派生，明暗主题各一组。
+// 颜色不走原版的紫色系，从站点的祖母绿 --accent(#10b981) 派生。
+// 浅色模式暂时下线，只保留 dark 一组；恢复时取消 light 和下面 themeObserver 的注释。
 const THEME_COLORS = {
   dark: { horizon: '#123f31', wave: '#071e18', crest: '#2fc593' },
-  light: { horizon: '#7fd4b4', wave: '#e4f7ee', crest: '#ffffff' },
+  // light: { horizon: '#7fd4b4', wave: '#e4f7ee', crest: '#ffffff' },
 }
 
 // 波形参数沿用 reactbits 默认值，speed 略降——hero 是阅读入口，背景动得太快会抢注意力。
@@ -209,7 +210,8 @@ export function GradientWaves() {
 
     function applyTheme() {
       if (!gl) return
-      const colors = document.body.dataset.theme === 'light' ? THEME_COLORS.light : THEME_COLORS.dark
+      // const colors = document.body.dataset.theme === 'light' ? THEME_COLORS.light : THEME_COLORS.dark
+      const colors = THEME_COLORS.dark
       gl.uniform3fv(uHorizon, hexToRgb(colors.horizon))
       gl.uniform3fv(uWave, hexToRgb(colors.wave))
       gl.uniform3fv(uCrest, hexToRgb(colors.crest))
@@ -268,11 +270,12 @@ export function GradientWaves() {
     resizeObserver.observe(mount)
     resize()
 
-    const themeObserver = new MutationObserver(() => {
-      applyTheme()
-      renderFrame()
-    })
-    themeObserver.observe(document.body, { attributes: true, attributeFilter: ['data-theme'] })
+    // 浅色模式下线后没有主题切换，不再需要监听 body[data-theme]。
+    // const themeObserver = new MutationObserver(() => {
+    //   applyTheme()
+    //   renderFrame()
+    // })
+    // themeObserver.observe(document.body, { attributes: true, attributeFilter: ['data-theme'] })
 
     // canvas 层 pointer-events 是 none（内容在它上面），事件挂到 hero 容器上才能收到。
     const pointerHost = mount.parentElement ?? mount
@@ -307,7 +310,7 @@ export function GradientWaves() {
     return () => {
       tryStop()
       resizeObserver.disconnect()
-      themeObserver.disconnect()
+      // themeObserver.disconnect()
       intersectionObserver.disconnect()
       document.removeEventListener('visibilitychange', onVisibility)
       pointerHost.removeEventListener('pointermove', onPointerMove)

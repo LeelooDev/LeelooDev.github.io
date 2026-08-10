@@ -10,6 +10,8 @@
     <!--app-head-->
   </head>
   <body>
+    <!-- 浅色模式暂时下线，站点只保留暗黑主题。恢复时取消下面脚本的注释，
+         并同步恢复 SiteLayout.tsx / styles.css / GradientWaves.tsx 里注释掉的浅色代码。
     <script>
       // 在 hydrate 之前落主题，避免深色/浅色闪一下。
       // 深色是 :root 的默认值，所以只有浅色需要显式打标记。
@@ -21,6 +23,8 @@
         /* 隐私模式下 localStorage 不可用，保持默认深色即可 */
       }
     </script>
+    -->
+
     <div id="root"><!--app-html--></div>
     <script type="module" src="/src/entry-client.tsx"></script>
   </body>
