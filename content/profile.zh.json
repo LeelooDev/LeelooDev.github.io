@@ -1,10 +1,10 @@
 {
   "name": "MacOazo",
-  "title": "全栈开发 · 设计 / 代码 / AI",
+  "title": "资深 iOS · 医学影像全栈工程师",
   "avatarUrl": "/images/profile-avatar.jpeg",
   "location": "San Francisco, CA",
-  "headline": "站在医疗与代码交汇处的工程师。",
-  "bio": "2017 年进入软件开发领域，一直在构建医生和患者真正会用的软件：从蓝牙硬件检测、互联网问诊、医生影像调阅到 MDT 多学科会诊，覆盖登录认证、即时通讯、APNs 推送、音视频通话、WebSocket 实时协作和 App Store 上架的完整移动端交付链路。\n在医学影像方向，我参与 DICOM 影像调阅、报告查看、历史影像对比、MPR / 3D 与 AI 分析工作流的建设，能够从前端查看器、iOS 客户端一路做到 Go / React 全栈服务的端到端闭环。近两年持续把 Claude Code、Cursor、AI Agent 和个人知识库引入日常研发，让需求拆解、代码生成、文档沉淀和测试验证都有了加速度。",
+  "headline": "8 年 iOS 开发，从移动医疗到医学影像全栈。",
+  "bio": "拥有 8 年 iOS 开发经验，熟悉从需求分析、技术选型、架构设计、开发联调、性能优化、测试验收到 App Store 上架与版本迭代的完整交付流程。长期使用 Objective-C、Swift、SwiftUI 与 UIKit，既能维护成熟工程，也能从零搭建稳定、可扩展的新项目。\n项目经历覆盖即时通讯、IoT 智能硬件和互联网医疗。先后参与全网云问诊、全网云医助与 MDT 多学科协同等产品，负责登录认证、预约问诊、WebSocket 消息、APNs 推送、音视频通话、CoreBluetooth 设备通信、医学影像调阅和报告展示，把复杂业务打磨成医生与患者真正能用的移动端体验。\n在医学影像方向，使用 React 与 TypeScript 开发基于 DICOM / DICOMweb 的影像查看器，覆盖 2D 浏览、MPR、3D 容积渲染、AI 分割结果和报告工作流，并延伸到 Go 实时协同服务。现在持续把 iOS、React、全栈能力与 AI 辅助开发结合起来，从客户端体验一路做到数据、协作与交付闭环。",
   "philosophy": "「给医生用的工具应当快速、诚实、安静。速度赢得信任，对不确定性的坦诚守住信任。」",
   "contacts": [
     {
@@ -162,6 +162,7 @@
     {
       "category": "iOS 开发",
       "items": [
+        "Objective-C",
         "Swift",
         "SwiftUI",
         "UIKit",

@@ -1,10 +1,10 @@
 {
   "name": "MacOazo",
-  "title": "Full-stack Development · Design / Code / AI",
+  "title": "Senior iOS & Medical Imaging Full-stack Engineer",
   "avatarUrl": "/images/profile-avatar.jpeg",
   "location": "San Francisco, CA",
-  "headline": "An engineer at the intersection of medicine and code.",
-  "bio": "Since 2017 I have been building software that doctors and patients actually use: Bluetooth hardware detection, online consultations, imaging viewers and MDT collaboration, covering the full mobile delivery chain from authentication, messaging and APNs push to audio/video calls, realtime WebSocket collaboration and App Store releases.\nOn the medical imaging side I work across DICOM retrieval, report viewing, prior-study comparison and MPR / 3D / AI analysis workflows — from the web viewer and iOS client all the way to Go / React full-stack services. In the last two years I have folded Claude Code, Cursor, AI agents and a personal knowledge base into my daily engineering loop.",
+  "headline": "Eight years in iOS, from digital health apps to full-stack medical imaging.",
+  "bio": "I bring eight years of iOS development experience and own the complete delivery cycle: requirements, architecture, implementation, backend integration, performance tuning, QA, App Store release and ongoing iteration. I work across Objective-C, Swift, SwiftUI and UIKit, from maintaining mature codebases to building stable, extensible products from zero.\nMy product experience spans instant messaging, IoT hardware and digital health. I have delivered core workflows for Cloud Telemedicine, Cloud Clinician Assistant and MDT collaboration products, including authentication, appointment booking, WebSocket messaging, APNs, audio/video calls, CoreBluetooth device communication, medical image retrieval and report viewing.\nIn medical imaging, I build React and TypeScript viewers on DICOM and DICOMweb, covering 2D review, MPR, 3D volume rendering, AI segmentation results and reporting workflows, with Go services for realtime collaboration. I now bring iOS, React, full-stack engineering and AI-assisted development together to deliver the complete path from client experience to data, collaboration and release.",
   "philosophy": "“Tools for doctors should be fast, honest and quiet. Speed earns trust; honesty about uncertainty keeps it.”",
   "contacts": [
     {
@@ -162,6 +162,7 @@
     {
       "category": "iOS Development",
       "items": [
+        "Objective-C",
         "Swift",
         "SwiftUI",
         "UIKit",
