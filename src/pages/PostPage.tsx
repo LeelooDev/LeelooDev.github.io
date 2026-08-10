@@ -98,7 +98,12 @@ export function PostPage() {
 
       {post.coverUrl ? (
         <div className="article-cover-wrap">
-          <img className="article-cover" src={post.coverUrl} alt={post.coverAlt} />
+          <img
+            className="article-cover"
+            src={post.coverUrl}
+            alt={post.coverAlt}
+            style={{ objectPosition: post.coverPosition ?? 'center' }}
+          />
         </div>
       ) : null}
 

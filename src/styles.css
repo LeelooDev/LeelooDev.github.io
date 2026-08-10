@@ -962,7 +962,11 @@ body[data-theme='light'] .code-block { border-color: rgba(20, 20, 25, 0.16); }
   .note-reader-content { font-size: 16.5px; line-height: 1.72; }
   .note-reader-content h2 { font-size: 24px; margin-top: 38px; }
   .article-content :not(pre) > code { white-space: normal; overflow-wrap: anywhere; word-break: break-word; }
-  .article-content table { display: block; max-width: 100%; overflow-x: auto; }
+  /* 宽表格保留列结构并在自身内部滚动，避免最小内容宽度把整页撑出视口。 */
+  .article-content table {
+    display: block; max-width: 100%; overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
   .about-two-col { grid-template-columns: 1fr; }
   .featured-body { padding: 28px 24px; }
   /* 手机上正文本来就窄，把留白收紧、按钮放大到能点得准的尺寸 */

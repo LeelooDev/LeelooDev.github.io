@@ -45,7 +45,11 @@ export function HomePage() {
             </div>
             <div className="featured-cover">
               {featured.coverUrl ? (
-                <img src={featured.coverUrl} alt={featured.coverAlt} />
+                <img
+                  src={featured.coverUrl}
+                  alt={featured.coverAlt}
+                  style={{ objectPosition: featured.coverPosition ?? 'center' }}
+                />
               ) : (
                 <div className="cover-fallback">{t('coverPlaceholder')}</div>
               )}

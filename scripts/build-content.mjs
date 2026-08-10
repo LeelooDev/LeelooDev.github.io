@@ -80,6 +80,8 @@ for (const file of files) {
     tags: data.tags ?? [],
     coverUrl: requireField(data, 'cover', file),
     coverAlt: data.coverAlt ?? '',
+    coverFit: data.coverFit === 'cover' ? 'cover' : undefined,
+    coverPosition: data.coverPosition || undefined,
     status: 'published',
     publishedAt,
     createdAt: publishedAt,

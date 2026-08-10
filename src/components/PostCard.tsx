@@ -9,7 +9,16 @@ export function PostCard({ post, index = 0 }: { post: Post; index?: number }) {
     <Link className="article-card" to={`/posts/${post.slug}`} style={{ animationDelay: `${index * 0.06}s` }}>
       <div className="article-card-cover">
         {post.coverUrl ? (
-          <img className="cover-img" src={post.coverUrl} alt={post.coverAlt} loading="lazy" />
+          <img
+            className="cover-img"
+            src={post.coverUrl}
+            alt={post.coverAlt}
+            loading="lazy"
+            style={{
+              objectFit: post.coverFit ?? 'contain',
+              objectPosition: post.coverPosition ?? 'center',
+            }}
+          />
         ) : (
           <div className="cover-fallback">cover</div>
         )}
