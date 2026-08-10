@@ -3,8 +3,10 @@ title: 从零学会企业级 AI Agent 开发（一）：祛魅——Agent 的本
 date: 2026-06-11
 category: code
 tags: [AI, Agent, LLM, 工程实践]
-cover: /images/cover-volcano-hiker.jpg
-coverAlt: 云海之上的火山群峰与独行的登山者剪影
+cover: /images/cover-enterprise-agent-01.jpeg
+coverAlt: 林间溪流旁手持金弓、与白鹿相伴的绿发月冠女神
+coverFit: cover
+coverPosition: center 41%
 excerpt: 企业级 AI Agent 开发系列开篇：用一手资料拆解「95% 试点失败」的真相，认清 Agent 的本质——一个带护栏的 while 循环，写出第一个可运行的最小实现，并给出整个系列的工程路线图。
 dek: 这个系列只讲能落地的东西：每一个结论都来自一手工程复盘，每一个坑都有真实事故背书。第一篇先把概念钉死、把循环跑通、把地图铺开。
 ---

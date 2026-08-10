@@ -1,7 +1,7 @@
 ---
 title: Intelligent Medical Image Segmentation Research
 tags: [Medical Imaging, Image Segmentation, SAM, ONNX Runtime, WebGPU, Browser-Resident Inference]
-coverAlt: Intelligent medical image segmentation research workspace
+coverAlt: A white city wall and marching soldiers beneath a crescent moon and a field of stars
 excerpt: An ONNX export of SAM runs the full encode–decode pipeline inside the browser over WebGPU, so images never leave the workstation. Written as a research paper, it works through the three-tier cache hierarchy, a window-level-sensitive cache key, and an interaction economics model that answers whether AI assistance is actually faster — the acceptance-rate threshold lands near 9.8%.
 ---
 

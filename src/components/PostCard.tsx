@@ -15,7 +15,7 @@ export function PostCard({ post, index = 0 }: { post: Post; index?: number }) {
             alt={post.coverAlt}
             loading="lazy"
             style={{
-              objectFit: post.coverFit ?? 'contain',
+              objectFit: post.coverFit ?? 'cover',
               objectPosition: post.coverPosition ?? 'center',
             }}
           />

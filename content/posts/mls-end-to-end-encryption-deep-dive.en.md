@@ -2,7 +2,7 @@
 title: "MLS Explained: End-to-End Encryption for Groups of 100,000"
 excerpt: Understand how Messaging Layer Security uses a ratchet tree, epochs and a key schedule to reduce group key updates from O(n) to O(log n).
 tags: [Security, End-to-End Encryption, MLS, Cryptography, Protocol Design]
-coverAlt: A black-and-white photograph of a seated person holding a wired telephone
+coverAlt: A black ship approaching between mountains and a sun disk as two rows of dark-haired women move through the water
 ---
 
 Most end-to-end encryption introductions focus on the Signal protocol: X3DH, the Double Ratchet and forward secrecy. That design is elegant for two participants. Large groups create a different systems problem.

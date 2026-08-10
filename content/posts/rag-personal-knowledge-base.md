@@ -3,8 +3,10 @@ title: 目标：做出一个 RAG 个人知识库
 date: 2026-06-26T13:00:00
 category: code
 tags: [RAG, AI, Embedding, 向量数据库, Python]
-cover: /images/rag-personal-knowledge-base-cover.jpg
-coverAlt: 高处俯拍的峡谷土路与河道纹理，一辆车停在转弯处
+cover: /images/cover-rag-knowledge-base.jpeg
+coverAlt: 海边花丛中手捧发光贝壳的红发女子与白鸽
+coverFit: cover
+coverPosition: center 48%
 excerpt: 接着 AI API 入门之后，第二个最适合 iOS 开发者的项目是 RAG 个人知识库：上传 PDF / Markdown，自动切片、生成 embedding、写入向量库，再用 Top-K、Rerank、Hybrid Search 和引用来源生成可信回答。
 dek: 不要只学 RAG 理论。这一篇直接按一个可运行 Demo 的方式拆开：文档解析、切片、embedding、向量检索、重排、引用、反幻觉和多用户隔离。
 ---

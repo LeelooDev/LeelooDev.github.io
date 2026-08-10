@@ -3,8 +3,10 @@ title: 深入理解 MCP：原理、架构、消息、传输、安全与 2026-07-
 date: 2026-08-04T16:00:00
 category: code
 tags: [MCP, Agent, 协议, LLM, 架构, 安全]
-cover: /images/mcp-deep-dive-cover.jpg
-coverAlt: 淡绿色手绘插画：一片针叶林中间立着一棵大树，树枝上挂着秋千，一个孩子坐在上面；左边是冒着炊烟的小房子和两只兔子，右边两只小狗在草地上奔跑
+cover: /images/cover-mcp-deep-dive.jpeg
+coverAlt: 蓝天和红色长矛阵列前，手持金色圆盾的巨人战士
+coverFit: cover
+coverPosition: center 36%
 excerpt: 从集成问题出发，逐层拆解 Model Context Protocol 的 Host–Client–Server 架构、JSON-RPC 消息、Tools/Resources/Prompts、stdio 与 Streamable HTTP，并详解把协议核心改成无状态的 2026-07-28 大版本。九张图，一份迁移清单。
 dek: MCP 最有价值的地方不是让模型突然懂得更多，而是为 AI 应用和真实世界之间划出一条可描述、可替换、可授权、可观测的边界。
 ---

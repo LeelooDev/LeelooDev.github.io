@@ -2,7 +2,7 @@
 title: "Enterprise AI Agents, Part 1: A Guarded While Loop"
 excerpt: Remove the mystery from agents, build a minimal tool loop, and define the engineering roadmap from permissions and budgets to evaluation and observability.
 tags: [AI, Agents, LLM, Engineering Practice]
-coverAlt: A lone hiker above clouds and volcanic peaks
+coverAlt: A green-haired moon goddess holding a golden bow beside a white stag in a flowering forest
 ---
 
 > This series focuses on systems that can actually be operated: explicit contracts, real failure modes and conclusions grounded in engineering evidence.

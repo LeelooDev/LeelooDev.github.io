@@ -3,8 +3,10 @@ title: 从零学会企业级 AI Agent 开发（二）：工具层实战——接
 date: 2026-06-12
 category: code
 tags: [AI, Agent, LLM, 工程实践]
-cover: /images/cover-red-wall-door.jpg
-coverAlt: 斑驳红墙上的一扇绿门，蓝袍白巾的身影正推门而入
+cover: /images/cover-enterprise-agent-02.jpeg
+coverAlt: 深蓝海浪间手持金色三叉戟、身旁跃起海豚的白衣女神
+coverFit: cover
+coverPosition: center 40%
 excerpt: 系列第二篇进入工具层：用同一个模型换接口提升 64% 的实证，手把手把一个工单系统 agent 的工具从「能跑的烂版本」重构成生产级——粒度合并、描述防呆、返回设计、错误引导、写操作三道闸，以及 MCP 在企业里的正确打开方式。
 dek: 工具是 agent 通向真实世界的那扇门。这一篇全程动手：跟着六个重构步骤，把你的工具层从 API 包装纸打磨成真正的 ACI。
 ---

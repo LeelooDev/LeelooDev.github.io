@@ -26,7 +26,7 @@ export interface Post {
   tags: string[]
   coverUrl: string
   coverAlt: string
-  /** 列表缩略图的填充方式；未配置时保持旧文章的 contain 行为。 */
+  /** 列表缩略图的填充方式；文章封面默认使用 cover 铺满。 */
   coverFit?: 'contain' | 'cover'
   /** object-position 透传，供竖版封面控制裁切焦点。 */
   coverPosition?: string

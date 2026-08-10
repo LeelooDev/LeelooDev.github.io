@@ -3,8 +3,10 @@ title: 幻觉、内讧与兜底：Agent 可靠性工程指南
 date: 2026-08-04T18:00:00
 category: code
 tags: [Agent, LLM, 幻觉, 多智能体, 可靠性, 工程实践]
-cover: /images/agent-reliability-cover.jpg
-coverAlt: 梵高《星月夜》风格的油画：深蓝色的星空布满旋涡状笔触和几团暖黄的星光，一个人影独自站在木船上划桨，湖面倒映着远处城镇的点点灯火
+cover: /images/cover-agent-reliability.jpeg
+coverAlt: 蓝金宫殿中手持短剑与金杯、身旁环绕白猪的黑衣女王
+coverFit: cover
+coverPosition: center 40%
 excerpt: 从「错误会复利」这笔账出发，拆解 Agent 开发最难缠的三件事：模型为什么必然胡编、多智能体为什么互相甩锅打架、兜底应该怎么分层设计。综合 OpenAI 的幻觉成因论文、Berkeley 的 MAST 失败分类学、Anthropic 与 Cognition 的一线实践，外加五个容易被低估的坑和一份十二条落地清单。
 dek: 模型的不可靠是常数，系统的可靠是变量——Agent 工程的全部要义，是不让前者决定后者。
 ---

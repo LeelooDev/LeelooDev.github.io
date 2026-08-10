@@ -3,8 +3,10 @@ title: OHIF-AI（二）：点、线、框和文字提示如何驱动 3D 分割
 date: 2026-06-08
 category: code
 tags: [OHIF, 图像分割, nnInteractive, SAM2, VoxTell]
-cover: /images/cover-street-art.jpg
-coverAlt: 行人走过巨幅昆虫街头壁画
+cover: /images/cover-ohif-segmentation.jpeg
+coverAlt: 海边洞穴中挥棒迎战巨人的士兵与遍地黑羊
+coverFit: cover
+coverPosition: center 43%
 excerpt: OHIF-AI 的分割体验不是简单点击一次按钮，而是把点、负点、框、套索、涂鸦和文本提示都转成模型交互，让用户可以在浏览器里持续修正 3D 医学影像分割结果。
 dek: 分割功能的关键，是把 OHIF 里的 measurement 变成可复用的 AI prompt，再把模型输出重新变成 Cornerstone segmentation。
 ---

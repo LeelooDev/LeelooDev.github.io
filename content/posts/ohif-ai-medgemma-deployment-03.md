@@ -3,8 +3,10 @@ title: OHIF-AI（三）：MedGemma 报告生成与 Docker 部署链路
 date: 2026-06-08
 category: code
 tags: [OHIF, MedGemma, Docker, 医学影像]
-cover: /images/cover-tennis-court.jpg
-coverAlt: 深蓝球场上的网球运动员与球拍
+cover: /images/cover-ohif-medgemma.jpeg
+coverAlt: 惊涛与礁石之间，一艘黑船迎向盘绕山崖的三头巨蛇
+coverFit: cover
+coverPosition: center 42%
 excerpt: OHIF-AI 不只做分割，还把 MedGemma 1.5 4B 接进影像浏览器，让用户指定 instruction、query 和切片范围，从 CT/MRI 体数据中生成放射学风格报告。
 dek: 报告生成和部署链路说明了 OHIF-AI 的另一面：它既是前端影像工具，也是依赖 GPU、大模型和容器编排的推理系统。
 ---

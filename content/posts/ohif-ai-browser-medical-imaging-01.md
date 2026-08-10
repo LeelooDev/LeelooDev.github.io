@@ -3,8 +3,10 @@ title: OHIF-AI（一）：把医学影像 AI 放进浏览器
 date: 2026-06-08
 category: code
 tags: [OHIF, 医学影像, AI, MONAI Label]
-cover: /images/cover-architecture.jpg
-coverAlt: 光影交错的现代建筑结构
+cover: /images/cover-ohif-browser.jpeg
+coverAlt: 黑色夜空与翻涌海面之间，一艘长船驶向巨大的海上漩涡
+coverFit: cover
+coverPosition: center 48%
 excerpt: OHIF-AI 不是单独做一个 AI Demo，而是把交互式分割、文本提示分割和报告生成接进 OHIF Viewer，让医生或研究人员在浏览器里完成影像查看、提示、推理和结果回填。
 dek: 从项目结构看，OHIF-AI 的核心价值是把医学影像阅片界面和后端基础模型推理服务接成一个完整工作流。
 ---

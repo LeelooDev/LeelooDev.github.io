@@ -2,7 +2,7 @@
 title: "Enterprise AI Agents, Part 2: Design the Tool Interface as a Product"
 excerpt: Refactor a ticketing agent from thin API wrappers into a production-grade agent-computer interface with better granularity, errors, write gates and observability.
 tags: [AI, Agents, LLM, Engineering Practice]
-coverAlt: A figure entering a green door set in a weathered red wall
+coverAlt: A white-robed sea goddess holding a golden trident as dolphins leap through dark blue waves
 ---
 
 > The first part reduced an agent to a guarded loop. This part focuses on the layer that determines what the loop can actually accomplish: the tool interface.

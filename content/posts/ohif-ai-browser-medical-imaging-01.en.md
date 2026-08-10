@@ -2,7 +2,7 @@
 title: "OHIF-AI, Part 1: Bringing Medical Imaging AI into the Browser"
 excerpt: Connect interactive segmentation, text-prompted models and report generation to OHIF Viewer so inference becomes part of the imaging workflow.
 tags: [OHIF, Medical Imaging, AI, MONAI Label]
-coverAlt: A modern architectural structure with strong light and shadow
+coverAlt: A long ship sailing across a dark sea toward a vast whirlpool beneath a black night sky
 ---
 
 OHIF-AI is not a separate AI demo beside an imaging viewer. Its value comes from putting model capabilities inside the interface clinicians and researchers already use.

@@ -3,8 +3,10 @@ title: 从零搭建个人智能体（一）
 date: 2026-08-06T10:00:00
 category: code
 tags: [Agent, RAG, 混合检索, SQLite, FTS5, Rerank, Electron, TypeScript]
-cover: /images/personal-agent-01-cover.jpg
-coverAlt: 一个金属质感的带翼人形悬停在巨大的螺旋建筑漩涡中心，四壁是层层收束的白金巴洛克廊柱，尽头是旋成同心圆的云层与天空
+cover: /images/cover-personal-agent-01.jpeg
+coverAlt: 月轮和古典遗迹前，黑色蛇发环绕的黑衣女子
+coverFit: cover
+coverPosition: center 38%
 excerpt: 系列第一篇只讲一件事：把一个本地 Markdown 目录变成 Agent 能可靠引用的知识源。从切块与行号的地基、中文全文检索为什么必须自己造，到把检索做成可替换的管道、先立评估基准再谈收益，最后是四步升级的实测阶梯与十个真正踩到的坑——包括一个让 utility 进程静默崩溃到重启死循环的推理层事故。
 dek: 检索层的成败不在用了哪个向量库，而在于每一次「我把它改好了」都能被一把尺子证伪。
 ---

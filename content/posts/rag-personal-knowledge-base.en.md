@@ -2,7 +2,7 @@
 title: Build a Traceable RAG Personal Knowledge Base
 excerpt: A runnable RAG blueprint covering document parsing, chunking, embeddings, retrieval, reranking, citations, hallucination controls and tenant isolation.
 tags: [RAG, AI, Embeddings, Vector Database, Python]
-coverAlt: An aerial view of a canyon road, riverbed and a vehicle at a bend
+coverAlt: A red-haired woman holding a glowing shell among seaside flowers and white doves
 ---
 
 > After building a basic AI API, a personal knowledge base is an excellent second project. It combines backend APIs, file processing, retrieval, model calls and a client experience in one testable system.

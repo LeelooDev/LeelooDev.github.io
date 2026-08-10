@@ -3,8 +3,10 @@ title: 从零搭建个人智能体（二）
 date: 2026-08-06T18:00:00
 category: code
 tags: [Agent, RAG, 文档解析, PDF, OCR, Electron, SQLite, TypeScript]
-cover: /images/personal-agent-02-cover.jpg
-coverAlt: 高空俯瞰的雪山全景，逆光的云海从山脊间漫过，右侧太阳压在云层边缘
+cover: /images/cover-personal-agent-02.jpeg
+coverAlt: 粉色云海前身披红色斗篷、手持长矛和圆盾的女战士
+coverFit: cover
+coverPosition: center 43%
 excerpt: 一个知识库 Agent 只支持 Markdown 时，"引用可验证"是一句轻松的承诺——因为行号就是行号。加进 PDF、Excel、PPT、截图之后，这句承诺要么被守住，要么被悄悄掏空。这篇讲怎么用一层派生文本把八种坐标系压回一种，让检索与验证一行不改；讲确定性为什么是这类系统唯一会致命且不报错的失效模式；也讲三次单元测试全绿、应用却连界面都渲染不出来的事故。
 dek: 扩展文档格式，难的从来不是解析。难的是让"这条引用能被验证"在六种新格式上继续成立。
 ---

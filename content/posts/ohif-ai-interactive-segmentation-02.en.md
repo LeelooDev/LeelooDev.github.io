@@ -2,7 +2,7 @@
 title: "OHIF-AI, Part 2: Driving 3D Segmentation with Points, Lines, Boxes and Text"
 excerpt: Convert OHIF measurements into reusable model prompts and return 3D results as native Cornerstone segmentations that users can refine continuously.
 tags: [OHIF, Image Segmentation, nnInteractive, SAM2, VoxTell]
-coverAlt: A pedestrian passing a large insect mural
+coverAlt: Soldiers and black sheep confronting a giant at the mouth of a seaside cave
 ---
 
 The core experience in OHIF-AI is interactive medical image segmentation.

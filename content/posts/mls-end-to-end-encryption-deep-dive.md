@@ -3,8 +3,10 @@ title: MLS 深度解析：为十万人群聊设计的端到端加密协议
 date: 2026-06-11
 category: code
 tags: [安全, 端到端加密, MLS, 密码学, 协议设计]
-cover: /images/cover-telephone.jpg
-coverAlt: 黑白照片，戴帽子的人坐在沙发上握着一部有线电话
+cover: /images/cover-mls-encryption.jpeg
+coverAlt: 日轮与山谷前驶来的黑船，两列黑发女子在水中相对而行
+coverFit: cover
+coverPosition: center 55%
 excerpt: 双棘轮解决了两个人的保密通话，但群聊一直是端到端加密的软肋。IETF 用五年时间制定的 MLS（RFC 9420），用一棵「棘轮树」把群密钥协商的成本从 O(n) 压到 O(log n)，同时保住前向保密和入侵后恢复。本文从问题出发，把 TreeKEM、纪元状态机、密钥调度和信任架构完整讲一遍。
 dek: 从双棘轮的局限讲起，把 MLS 的棘轮树、Proposal-Commit 状态机、密钥调度和 DS/AS 信任模型一次讲透。
 draft: false

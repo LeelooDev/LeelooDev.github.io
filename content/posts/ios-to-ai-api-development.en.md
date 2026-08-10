@@ -2,7 +2,7 @@
 title: From iOS Development to AI API Engineering
 excerpt: A practical path for iOS developers moving into AI backend work, from Python and FastAPI to streaming, function calling and structured output.
 tags: [iOS, AI API, Python, FastAPI, LLM]
-coverAlt: A city skyline reflected in a river beneath an overcast sky
+coverAlt: A white-robed angel holding a red apple beneath a golden halo, surrounded by flowers and doves
 ---
 
 > This guide is for iOS engineers who can already ship applications and now want to build reliable AI backends. The goal is not to become an ML researcher overnight. It is to receive requests, call models, stream results, expose tools and return JSON that a client can safely consume.

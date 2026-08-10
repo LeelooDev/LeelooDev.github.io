@@ -2,7 +2,7 @@
 title: "OHIF-AI, Part 3: MedGemma Reporting and the Docker Deployment Path"
 excerpt: Add radiology-style report generation to an imaging viewer and deploy the GPU-backed model service with explicit jobs, model versions and health checks.
 tags: [OHIF, MedGemma, Docker, Medical Imaging]
-coverAlt: A tennis player and racket on a deep blue court
+coverAlt: A black ship facing three giant serpents coiled around a sea cliff amid crashing waves and rocks
 ---
 
 OHIF-AI goes beyond segmentation by adding radiology-style text generation from selected CT or MRI data.

@@ -3,8 +3,10 @@ title: 从 iOS 开发转到 AI API 开发
 date: 2026-06-26T12:00:00
 category: code
 tags: [iOS, AI API, Python, FastAPI, LLM]
-cover: /images/ios-to-ai-api-cover.jpg
-coverAlt: 城市天际线与江面倒影，远处高楼在阴天中延伸
+cover: /images/cover-ios-to-ai-api.jpeg
+coverAlt: 花海和白鸽之间，金色光轮下手捧红苹果的白衣天使
+coverFit: cover
+coverPosition: center 41%
 excerpt: 给 iOS 开发者的一条 AI API 入门路线：从 Python 基础、FastAPI / Flask、HTTP API 和 JSON Schema 讲到 OpenAI、DeepSeek、Anthropic 的调用方式，再落到 Streaming、Function Calling 与 Structured Outputs。
 dek: 这不是一篇「背几个 prompt」的文章，而是把 iOS 工程师熟悉的 Codable、URLSession、状态机和接口契约，迁移到 AI API 后端开发里。
 ---
