@@ -17,11 +17,11 @@ export function AboutPage() {
     <div className="page">
       <div className="about-layout">
         <aside className="about-side">
-          {profile.avatarUrl ? (
-            <img className="about-portrait" src={profile.avatarUrl} alt={profile.name} />
-          ) : (
-            <div className="about-portrait-fallback">{profile.name?.[0] ?? 'M'}</div>
-          )}
+          <img
+            className="about-portrait about-portrait-svg"
+            src="/images/about-face.svg"
+            alt={profile.name}
+          />
           <div className="about-side-name">{profile.name}</div>
           {profile.title ? <div className="about-side-title">{profile.title}</div> : null}
           {profile.location ? <div className="about-side-loc">{profile.location}</div> : null}

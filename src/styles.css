@@ -700,6 +700,7 @@ button { font-family: inherit; }
 }
 .about-side { width: 280px; flex: none; position: sticky; top: 88px; }
 .about-portrait { width: 280px; height: 330px; object-fit: cover; border-radius: 16px; border: 1px solid var(--border); }
+.about-portrait-svg { object-fit: contain; padding: 22px 28px; background: #f7f7f5; }
 .about-portrait-fallback {
   width: 280px; height: 330px; border-radius: 16px; border: 1px solid var(--border);
   background: repeating-linear-gradient(45deg, var(--border) 0 10px, transparent 10px 20px);
