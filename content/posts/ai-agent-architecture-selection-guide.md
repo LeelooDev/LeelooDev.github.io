@@ -1,13 +1,13 @@
 ---
 title: 企业级 AI Agent + RAG 架构选型：高星项目实现、框架边界与生产路线图
-date: 2026-08-10T22:30:00
+date: 2026-08-10T23:58:00
 category: code
-tags: [AI Agent, RAG, Workflow, LangGraph, 多智能体, 系统架构, 工程实践]
+tags: [AI Agent, RAG, Workflow, LangGraph, Pi Agent, 多智能体, 系统架构, 工程实践]
 cover: /images/cover-ai-agent-architecture.jpeg
 coverAlt: 巨型客轮从海面驶来，船身和天空被花卉、人物与节庆图案覆盖
 coverFit: cover
 coverPosition: center 68%
-excerpt: 本文回到 Dify、LangGraph、CrewAI、LlamaIndex、GraphRAG、OpenAI Agents SDK、Temporal 等高星项目的代码与官方文档，结合 22 个生产问题，给出企业级 Agent 的默认架构、框架边界和完整落地路线图。
+excerpt: 本文回到 Dify、Pi、LangGraph、CrewAI、LlamaIndex、GraphRAG、OpenAI Agents SDK、Temporal 等高星项目的代码与官方文档，结合 22 个生产问题，给出企业级 Agent 的默认架构、框架边界和完整落地路线图。
 dek: 高星项目真正证明的不是“Agent 越多越先进”，而是状态、控制流、工具、权限和故障恢复必须由工程系统掌握。
 ---
 
@@ -15,7 +15,7 @@ dek: 高星项目真正证明的不是“Agent 越多越先进”，而是状态
 
 Workflow、ReAct、Plan-and-Execute、Graph、Supervisor、GraphRAG、Agentic RAG 经常被画在同一张选型表里，好像企业必须从中挑出一个赢家。这个问题从一开始就问错了：它们分属控制流、执行策略、协作拓扑、运行时和知识检索等不同层级，本来就可以组合。
 
-这篇文章先从一份 Agent + RAG 架构调研出发，再回到 Dify、LangGraph、CrewAI、LlamaIndex、GraphRAG、OpenAI Agents SDK、smolagents、Temporal 等项目的仓库与官方文档，核对它们如何保存状态、调度节点、限制循环、隔离租户、恢复任务和保护工具调用。吴恩达的课程与 Karpathy 的演讲只用于解释设计思想，不替代代码证据。
+这篇文章先从一份 Agent + RAG 架构调研出发，再回到 Dify、Pi、LangGraph、CrewAI、LlamaIndex、GraphRAG、OpenAI Agents SDK、smolagents、Temporal 等项目的仓库与官方文档，核对它们如何保存状态、调度节点、限制循环、隔离租户、恢复任务和保护工具调用。吴恩达的课程与 Karpathy 的演讲只用于解释设计思想，不替代代码证据。
 
 调研报告中的置信标签没有被直接照搬。凡是无法在源码、官方文档或原始论文中复核的数字和归因，都不进入正文。本文还把 22 个生产问题中的并发、超时、队列、缓存、多租户、断点续跑、模型调度和发布治理放回同一张架构图里，最终只回答一个问题：
 
@@ -81,6 +81,7 @@ Star 只能说明社区关注度，不能直接证明生产成熟度。下面的
 | 项目 | 代码或官方文档呈现的实现 | 对企业选型的意义 |
 | --- | --- | --- |
 | [Dify](https://github.com/langgenius/dify)（约 15.2 万 Star） | `WorkflowRun` 持久化租户、应用、工作流版本、图、状态、Token 和步骤；图引擎使用队列与可伸缩 Worker | 一个 Agent 平台首先是工作流、状态、队列、版本和运营系统，不是聊天循环；但多租户商用必须先核对许可证 |
+| [Pi](https://github.com/earendil-works/pi)（约 8.7 万） | 将模型协议、Agent Loop、Coding Agent 应用、TUI、会话后端和远程协议拆成独立包；Agent Core 暴露上下文转换、流式事件、工具前后钩子、并行/串行执行和取消边界 | 轻量内核不等于玩具；企业可以复用可注入的单 Agent 循环，但租户、队列、审批、沙箱和发布治理仍要在外层建设 |
 | [AutoGen](https://github.com/microsoft/autogen)（约 6.0 万） | 以 Core、AgentChat、Extensions 分层，支持消息驱动与多 Agent；官方已宣布进入维护模式 | Star 代表历史影响力，不代表今天仍适合新项目；新项目应评估其后继 [Microsoft Agent Framework](https://github.com/microsoft/agent-framework) |
 | [CrewAI](https://github.com/crewAIInc/crewAI)（约 5.7 万） | 明确区分负责自主协作的 Crews 与负责状态、分支和事件控制的 Flows | 即使是多 Agent 框架，也在用确定性 Flow 包住自治 Crew；核心业务不应只靠角色对话推进 |
 | [LlamaIndex](https://github.com/run-llama/llama_index)（约 5.2 万） | 将连接器、解析、索引、检索器、查询引擎和重排器拆成可替换模块 | 企业 RAG 是可评测的数据与检索管道，不是“选一个向量数据库”就结束 |
@@ -92,15 +93,18 @@ Star 只能说明社区关注度，不能直接证明生产成熟度。下面的
 | [Temporal](https://github.com/temporalio/temporal)（约 2.2 万） | 通过事件历史重放恢复工作流；工作流代码要求确定性，外部副作用放入可重试 Activity | 跨服务、跨天和高价值长任务需要持久执行底座；LLM 与工具调用应作为 Activity，而不是塞进可重放的确定性工作流代码 |
 | [Microsoft Agent Framework](https://github.com/microsoft/agent-framework)（约 1.3 万） | 提供图工作流、检查点、Agent/工具/模型中间件和多种协作模式；自托管时仍由应用负责身份、授权、存储、部署和扩缩容 | 它是 AutoGen 的官方后继，适合微软技术栈评估，但框架不会替企业完成平台治理，预发布的托管组件也要单独审慎验证 |
 
+Pi 值得单独补充，因为它展示了另一种与平台化不同的工程路线：`pi-ai`统一模型与流式协议，`pi-agent-core`只负责状态和模型—工具循环，`pi-coding-agent`再装配会话、压缩、技能、扩展和编码工具。完整历史与发给模型的上下文投影分开保存，工具可以显式选择并行或串行，调用前后可以插入策略和审计。与此同时，Pi 的[安全文档](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/security.md)明确说明它默认没有内置沙箱，项目信任也不是运行时安全边界。因此它适合作为可嵌入的单 Agent 内核或本地 Coding Agent Harness，不应被误解为开箱即用的企业多租户平台。具体实现可继续阅读[《Pi Agent Harness 源码拆解》](/posts/pi-agent-harness-source-analysis)和[《从零写一个企业级 Agent》](/posts/enterprise-agent-from-scratch-pi-claude-code)。
+
 Dify 的代码尤其能说明“平台”和“框架”的区别：工作流运行记录不是一段聊天历史，而是带租户、版本、状态、步骤和成本的业务记录；图引擎也不是递归调用几个 Python 函数，而是有队列、Worker、流式协调和存储策略。与此同时，[Dify 当前许可证](https://github.com/langgenius/dify/blob/main/LICENSE)对经营多租户服务设有额外条件，企业不能把“代码公开”误解为“任何商业形态都可以直接使用”。
 
-这些项目共同指向五条工程事实：
+这些项目共同指向六条工程事实：
 
 1. 运行状态与聊天上下文必须分开保存。
 2. 确定性工作流与模型自主决策必须分层。
 3. 工具调用、交接和节点输出都要有结构化契约。
 4. 检查点、队列、版本、权限和链路追踪是一等能力，而不是上线后的补丁。
 5. 框架只提供运行原语，企业仍需负责身份、授权、租户隔离、容量、发布和事故恢复。
+6. Agent 内核应保持可注入：模型、上下文投影、工具策略、停止条件和事件持久化必须由应用接管，而不是藏在一个不可控制的总循环里。
 
 ### 吴恩达和 Karpathy 的材料应该怎样使用
 
@@ -818,7 +822,8 @@ Agent 可能选错工具、违反预算、绕远路，最后碰巧得到一个�
 | 需要验证角色协作或多 Agent 任务拆分 | CrewAI 的 Flow 包住 Crew，或 OpenAI Agents SDK 的 Manager/Agents-as-tools | 不让自由群聊承担交易状态；每个子任务都要有输入、产物、预算和停止条件 |
 | 以文档摄取、索引和检索组合为主 | LlamaIndex 组件或团队自有模块化 RAG 管道 | 必须独立建设权限同步、数据版本、召回评测和线上索引运维 |
 | 需要关系发现或全库主题归纳 | Microsoft GraphRAG 作为专用检索分支 | 先评估索引构建、实体消歧、增量更新和查询成本，不替代普通检索 |
-| 需要代码 Agent 或轻量工具循环 | smolagents 或 OpenAI Agents SDK | 强制最大步数、并发、Token 和超时；生成代码放到远程沙箱，不把本地解释器当安全边界 |
+| TypeScript 团队，需要可嵌入的单 Agent 内核或高度可定制的本地 Coding Agent | Pi Agent Core / Pi Coding Agent | Pi 只提供运行原语；企业服务仍需外接身份、持久状态、队列、审批和操作系统级沙箱 |
+| Python 团队，需要代码 Agent 或轻量工具循环 | smolagents 或 OpenAI Agents SDK | 强制最大步数、并发、Token 和超时；生成代码放到远程沙箱，不把本地解释器当安全边界 |
 | 任务跨服务、跨天、等待外部事件且不能丢 | Temporal 等持久工作流引擎包住 Agent 步骤 | LLM 和外部调用放进活动任务；工作流本身保持确定性，所有副作用设计幂等 |
 
 如果必须给出一套完整的基础设施组合，可以从团队已有能力出发：
@@ -856,7 +861,7 @@ Agent 可能选错工具、违反预算、绕远路，最后碰巧得到一个�
 
 模型负责提出可能正确的理解、计划和动作；工程系统负责判断它是否被允许、是否执行成功、失败后怎样恢复。这条边界清楚以后，框架只是实现选择；这条边界不清楚，再豪华的架构图也只是一个更昂贵的 Demo。
 
-更细的生产问题与排查清单，可以继续阅读[《生产级 AI Agent 工程面试题：22 题完整解析》](/notes/agent-production-engineering-interview-guide)；工具接口设计见[《从零学会企业级 AI Agent 开发（二）：工具层实战》](/posts/enterprise-ai-agent-02)。
+如果需要按代码文件一步步搭建，可以继续阅读[《从零写一个企业级 Agent：参考 Pi 与 Claude Code 的 16 步 TypeScript 实战》](/posts/enterprise-agent-from-scratch-pi-claude-code)；更细的生产问题与排查清单见[《生产级 AI Agent 工程面试题：22 题完整解析》](/notes/agent-production-engineering-interview-guide)，工具接口设计见[《从零学会企业级 AI Agent 开发（二）：工具层实战》](/posts/enterprise-ai-agent-02)。
 
 ## 参考资料
 
@@ -866,6 +871,10 @@ Agent 可能选错工具、违反预算、绕远路，最后碰巧得到一个�
 - [Dify：WorkflowRun 数据模型](https://github.com/langgenius/dify/blob/main/api/models/workflow.py)
 - [Dify：图引擎与工作流存储配置](https://github.com/langgenius/dify/blob/main/api/.env.example)
 - [Dify：许可证与多租户限制](https://github.com/langgenius/dify/blob/main/LICENSE)
+- [Pi：GitHub 仓库](https://github.com/earendil-works/pi)
+- [Pi Agent Core：状态、事件、工具循环与钩子](https://github.com/earendil-works/pi/blob/main/packages/agent/README.md)
+- [Pi：会话与上下文压缩](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/compaction.md)
+- [Pi：安全边界与沙箱要求](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/security.md)
 - [LangGraph：GitHub 仓库](https://github.com/langchain-ai/langgraph)
 - [LangGraph：Persistence](https://docs.langchain.com/oss/python/langgraph/persistence)
 - [LangGraph：Interrupts 与幂等边界](https://docs.langchain.com/oss/python/langgraph/interrupts)
