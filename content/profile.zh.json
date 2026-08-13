@@ -1,11 +1,11 @@
 {
   "name": "MacOazo",
-  "title": "资深 iOS · 医学影像全栈工程师",
+  "title": "资深 iOS 工程师 · 医学影像与 AI 系统",
   "avatarUrl": "/images/profile-avatar.jpeg",
   "location": "San Francisco, CA",
-  "headline": "8 年 iOS 开发，从移动医疗到医学影像全栈。",
-  "bio": "拥有 8 年 iOS 开发经验，熟悉从需求分析、技术选型、架构设计、开发联调、性能优化、测试验收到 App Store 上架与版本迭代的完整交付流程。长期使用 Objective-C、Swift、SwiftUI 与 UIKit，既能维护成熟工程，也能从零搭建稳定、可扩展的新项目。\n项目经历覆盖即时通讯、IoT 智能硬件和互联网医疗。先后参与全网云问诊、全网云医助与 MDT 多学科协同等产品，负责登录认证、预约问诊、WebSocket 消息、APNs 推送、音视频通话、CoreBluetooth 设备通信、医学影像调阅和报告展示，把复杂业务打磨成医生与患者真正能用的移动端体验。\n在医学影像方向，使用 React 与 TypeScript 开发基于 DICOM / DICOMweb 的影像查看器，覆盖 2D 浏览、MPR、3D 容积渲染、AI 分割结果和报告工作流，并延伸到 Go 实时协同服务。现在持续把 iOS、React、全栈能力与 AI 辅助开发结合起来，从客户端体验一路做到数据、协作与交付闭环。",
-  "philosophy": "「给医生用的工具应当快速、诚实、安静。速度赢得信任，对不确定性的坦诚守住信任。」",
+  "headline": "8+ 年 iOS 交付经验，专注医学影像与可信 AI 系统。",
+  "bio": "我以原生 iOS 为核心能力，长期使用 Swift、Objective-C、UIKit 与 SwiftUI，完整参与需求拆解、架构设计、开发联调、性能优化、测试发布和 App Store 迭代。项目覆盖 IoT 智能硬件、互联网问诊、医生影像助手与 MDT 多学科协作，负责过 CoreBluetooth、WebSocket、APNs、音视频通话、医学影像调阅和报告工作流。\n近年把能力延伸到医学影像全栈与 AI 系统：使用 React、TypeScript 和 DICOMweb 构建 2D、MPR、3D 与 AI 结果查看流程，使用 Go 与 WebSocket 实现实时影像协同；个人项目则聚焦 iOS 原生 DICOM 浏览器和本地知识库 Agent，以可复现检索、精确引用和评估门禁保证结果可信。",
+  "philosophy": "为高信任场景构建软件：响应要快，结果要可追溯，不确定性要说清楚。",
   "contacts": [
     {
       "type": "email",
@@ -19,6 +19,42 @@
     }
   ],
   "projects": [
+    {
+      "name": "MedView iOS DICOM 影像浏览器",
+      "role": "项目架构与实现",
+      "period": "2026",
+      "description": "项目概述：一个基于 DCMTK 3.6.8 的 iOS 原生 DICOM 影像浏览器，面向 iPhone 与 iPad 的移动阅片场景，覆盖患者、检查、序列、实例到多帧影像的完整数据层级。\n\n我的职责：设计 Swift / UIKit 客户端架构，通过 Objective-C++ 桥接 DCMTK 解码层，并实现 Metal GPU 渲染、窗宽窗位、图像变换、测量标注、文件导入与影像导出。\n\n核心功能：\n- 支持 16-bit 灰度与 8-bit RGB 的 Metal GPU 渲染\n- 支持单文件多帧与多文件单帧浏览、序列切换和 Cine 播放\n- 支持长度、角度、椭圆 ROI 与文字标注，并按 PixelSpacing 计算物理尺寸\n- 支持窗宽窗位预设、缩放、平移、旋转、翻转、反相与方位标记\n- 支持 PNG / JPEG、序列图片集和原始 DICOM 文件导出\n\n项目亮点：Swift UI 层、Objective-C++ 桥接层与 DCMTK 解码层职责清晰；GPU 端完成实时窗宽窗位和变换矩阵计算，已覆盖 10 种常见 DICOM 传输语法，包括 JPEG-LS 与 JPEG 2000。",
+      "tech": [
+        "Swift 5.9",
+        "UIKit",
+        "Metal",
+        "DCMTK 3.6.8",
+        "Objective-C++",
+        "DICOM",
+        "Core Graphics",
+        "XCTest"
+      ],
+      "link": "https://github.com/LeelooDev/DicomView",
+      "coverUrl": "/images/project-medical-imaging-viewer-cover.webp"
+    },
+    {
+      "name": "本地知识库 Agent",
+      "role": "独立架构与开发",
+      "period": "2026",
+      "description": "项目概述：一款数据完全留在本机的 macOS 知识库应用。用户选择本地文档目录后，Agent 可自主检索、阅读、重试并生成带精确行号引用的回答。\n\n我的职责：负责 Electron 桌面端、SQLite 数据层、文档解析、混合检索、Agent 工具协议、引用校验、评估体系与打包发布的完整架构和实现。\n\n核心功能：\n- SQLite FTS5 / BM25 与 CJK unigram 关键词检索\n- multilingual-e5-small 本地向量、RRF 融合与本地 reranker\n- search、read、outline、list 四个只读知识工具，由 Agent 自主选择与重试\n- 支持 Markdown、TXT、PDF、DOCX、XLSX、PPTX、HTML 与常见图片格式\n- 不同文档坐标统一映射到行号引用，并对最终证据集做确定性校验\n- 评估门禁覆盖检索、引用、工具预算和多格式回归\n\n项目亮点：多格式接入涉及 157 个文件、8,600+ 行变更，但保持检索层和引用契约不变；回归测试保持 34 / 34 门禁通过，后台入口通过延迟加载从 14.25 MB 降至 311 KB。",
+      "tech": [
+        "Electron",
+        "TypeScript",
+        "SQLite FTS5",
+        "Agentic RAG",
+        "Embeddings",
+        "RRF / Reranking",
+        "OCR",
+        "Evaluation"
+      ],
+      "link": "/posts/personal-agent-from-scratch-01",
+      "coverUrl": "/images/cover-personal-agent-01.jpeg"
+    },
     {
       "name": "iOS 甲醛检测蓝牙设备项目",
       "role": "iOS 核心功能开发",
@@ -160,74 +196,80 @@
   ],
   "skills": [
     {
-      "category": "iOS 开发",
+      "category": "iOS 与 Apple 平台",
       "items": [
-        "Objective-C",
         "Swift",
-        "SwiftUI",
+        "Objective-C",
         "UIKit",
+        "SwiftUI",
+        "CoreBluetooth",
+        "Metal",
         "WKWebView",
-        "App Store 上架",
-        "In-App Purchase",
-        "微信登录"
+        "XCTest",
+        "App Store 交付"
       ]
     },
     {
-      "category": "AI 辅助开发",
-      "items": [
-        "Vibe Coding",
-        "Cursor",
-        "Claude Code",
-        "ChatGPT",
-        "Prompt Engineering",
-        "AI Agent",
-        "自动化开发"
-      ]
-    },
-    {
-      "category": "全栈开发",
-      "items": [
-        "React",
-        "Next.js",
-        "TypeScript",
-        "Tailwind CSS",
-        "Node.js",
-        "REST API",
-        "数据库设计"
-      ]
-    },
-    {
-      "category": "产品设计",
-      "items": [
-        "UI/UX 设计",
-        "Figma",
-        "交互设计",
-        "设计规范",
-        "产品原型",
-        "个人知识库系统"
-      ]
-    },
-    {
-      "category": "医疗影像",
+      "category": "医学影像",
       "items": [
         "DICOM",
-        "医学影像 Viewer",
-        "影像调阅",
-        "既往对比",
-        "3D 视图",
-        "AI 影像分析"
+        "DICOMweb",
+        "DCMTK",
+        "Cornerstone3D",
+        "窗宽窗位",
+        "MPR / 容积渲染",
+        "影像测量",
+        "临床报告工作流"
       ]
     },
     {
-      "category": "工程工具",
+      "category": "AI 与知识系统",
       "items": [
-        "Git",
-        "GitHub",
-        "Xcode",
-        "VS Code",
-        "Chrome DevTools",
+        "Agentic RAG",
+        "FTS5 / BM25",
+        "Embedding",
+        "RRF / Reranking",
+        "引用校验",
+        "评估驱动开发",
+        "OCR",
+        "多格式文档解析"
+      ]
+    },
+    {
+      "category": "全栈与实时系统",
+      "items": [
+        "React",
+        "TypeScript",
+        "Go",
+        "Node.js",
+        "WebSocket",
+        "REST API",
+        "SQLite / PostgreSQL",
+        "Prometheus"
+      ]
+    },
+    {
+      "category": "Agent 开发工具",
+      "items": [
+        "MCP",
+        "Claude Code 插件",
+        "XcodeBuildMCP",
+        "浏览器自动化",
+        "Source Map 错误定位",
+        "技能路由",
+        "开发工作流自动化"
+      ]
+    },
+    {
+      "category": "工程交付",
+      "items": [
+        "架构设计",
+        "性能与内存分析",
         "自动化测试",
-        "项目部署"
+        "GitHub Actions",
+        "可观测性",
+        "App Store 发布",
+        "技术文档"
       ]
     }
   ],
@@ -235,40 +277,65 @@
     {
       "org": "医疗科技公司",
       "role": "影像平台全栈工程师",
-      "period": "2023 — 至今",
-      "description": "负责医学影像查看器与实时协同后端，覆盖 Web 查看器、iOS 客户端和 Go 服务。"
+      "period": "2023 至今",
+      "description": "负责医学影像平台的查看与协作能力。使用 React、TypeScript、Cornerstone3D 和 DICOMweb 交付 2D 浏览、MPR、容积渲染、AI 分割结果与报告工作流；使用 Go、WebSocket 和 actor 模型实现协同房间、操作广播、快照同步、鉴权与 Prometheus 观测。"
     },
     {
       "org": "互联网医疗公司",
       "role": "高级 iOS 工程师",
-      "period": "2019 — 2023",
-      "description": "交付互联网问诊、云医助与 MDT 多学科协同等多款医疗 App 的核心模块。"
+      "period": "2019–2023",
+      "description": "核心开发全网云问诊、云医助与 MDT 多学科协同等医疗 App，覆盖登录认证、预约与订单状态、WebSocket 消息、APNs 推送、音视频通话、DICOM 影像调阅、报告展示和医生权限，完成从患者问诊到医生移动阅片与远程会诊的关键链路。"
     },
     {
       "org": "智能硬件团队",
       "role": "iOS 工程师",
-      "period": "2017 — 2019",
-      "description": "从蓝牙甲醛检测 App 起步，打通硬件、蓝牙传输、数据解析到移动端展示的完整链路。"
+      "period": "2017–2019",
+      "description": "负责蓝牙甲醛检测 App 的核心开发，基于 CoreBluetooth 封装扫描、连接、特征读写、协议解析、状态展示与断线重连，处理权限关闭、连接失败和异常数据等边界场景，打通传感器、BLE 传输到移动端提醒的完整链路。"
     }
   ],
   "education": [],
   "certificates": [],
-  "openSource": [],
+  "openSource": [
+    {
+      "repo": "LeelooDev/DicomView",
+      "description": "基于 Swift、UIKit、Metal 与 DCMTK 的 iOS 原生 DICOM 影像浏览器。",
+      "stars": "",
+      "link": "https://github.com/LeelooDev/DicomView"
+    },
+    {
+      "repo": "LeelooDev/Build-WX-Apps",
+      "description": "通过 MCP 与 CLI 让 AI 助手编译、运行、操作并诊断微信小程序。",
+      "stars": "",
+      "link": "https://github.com/LeelooDev/Build-WX-Apps"
+    },
+    {
+      "repo": "LeelooDev/Build-iOS-Apps",
+      "description": "面向 iOS 构建、模拟器调试、自动化测试、性能和内存分析的 9 个专项技能。",
+      "stars": "",
+      "link": "https://github.com/LeelooDev/Build-iOS-Apps"
+    },
+    {
+      "repo": "LeelooDev/Build-Web-Apps",
+      "description": "覆盖 React 构建、渲染性能、内存、错误、网络、可访问性与状态诊断的开发插件。",
+      "stars": "",
+      "link": "https://github.com/LeelooDev/Build-Web-Apps"
+    }
+  ],
   "awards": [],
   "facts": [],
   "now": {
-    "updatedAt": "2026-07-07",
+    "updatedAt": "2026-08-10",
     "sections": [
       {
         "label": "正在构建",
         "items": [
           {
-            "title": "MacOazo 个人平台",
-            "note": "这个网站本身——Go + React 前后端分离，最近在打磨双语与 AI 数字分身。"
+            "title": "本地知识库 Agent",
+            "note": "基于 Electron、SQLite 与混合检索，把本地多格式文档变成可检索、可引用、可评估的私人知识系统。"
           },
           {
-            "title": "影像协同后端",
-            "note": "给医学影像查看器做实时协同的 Go 服务，actor 模型，正在向多实例扩展演进。"
+            "title": "MedView iOS DICOM 浏览器",
+            "note": "继续完善 DCMTK 解码、Metal 渲染、测量标注与移动阅片体验。"
           }
         ]
       },
@@ -276,8 +343,8 @@
         "label": "正在学习",
         "items": [
           {
-            "title": "AI Agent 工程化",
-            "note": "从提示词到工作流编排，把 Claude Code 的实践沉淀成可复用的技能库。"
+            "title": "可信 Agent 工程",
+            "note": "围绕工具契约、证据引用、回归评估和可观测性，把 Agent 从演示推进到稳定系统。"
           },
           {
             "title": "WebGPU",

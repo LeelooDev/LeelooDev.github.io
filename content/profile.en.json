@@ -1,11 +1,11 @@
 {
   "name": "MacOazo",
-  "title": "Senior iOS & Medical Imaging Full-stack Engineer",
+  "title": "Senior iOS Engineer · Medical Imaging & AI Systems",
   "avatarUrl": "/images/profile-avatar.jpeg",
   "location": "San Francisco, CA",
-  "headline": "Eight years in iOS, from digital health apps to full-stack medical imaging.",
-  "bio": "I bring eight years of iOS development experience and own the complete delivery cycle: requirements, architecture, implementation, backend integration, performance tuning, QA, App Store release and ongoing iteration. I work across Objective-C, Swift, SwiftUI and UIKit, from maintaining mature codebases to building stable, extensible products from zero.\nMy product experience spans instant messaging, IoT hardware and digital health. I have delivered core workflows for Cloud Telemedicine, Cloud Clinician Assistant and MDT collaboration products, including authentication, appointment booking, WebSocket messaging, APNs, audio/video calls, CoreBluetooth device communication, medical image retrieval and report viewing.\nIn medical imaging, I build React and TypeScript viewers on DICOM and DICOMweb, covering 2D review, MPR, 3D volume rendering, AI segmentation results and reporting workflows, with Go services for realtime collaboration. I now bring iOS, React, full-stack engineering and AI-assisted development together to deliver the complete path from client experience to data, collaboration and release.",
-  "philosophy": "“Tools for doctors should be fast, honest and quiet. Speed earns trust; honesty about uncertainty keeps it.”",
+  "headline": "8+ years delivering iOS products, focused on medical imaging and trustworthy AI systems.",
+  "bio": "Native iOS is my core discipline. I work across Swift, Objective-C, UIKit and SwiftUI, and have owned requirements, architecture, implementation, integration, performance, testing, App Store release and iteration. My product work spans IoT hardware, telemedicine, clinician imaging assistants and MDT collaboration, including CoreBluetooth, WebSocket messaging, APNs, audio/video calls, medical image access and reporting workflows.\nMore recently, I have extended that foundation into medical imaging platforms and AI systems: React, TypeScript and DICOMweb for 2D, MPR, 3D and AI-result review, plus Go and WebSocket services for realtime imaging collaboration. My independent work includes a native iOS DICOM viewer and a local knowledge Agent designed around reproducible retrieval, exact citations and evaluation gates.",
+  "philosophy": "For high-trust software: respond quickly, keep results traceable, and state uncertainty clearly.",
   "contacts": [
     {
       "type": "email",
@@ -19,6 +19,42 @@
     }
   ],
   "projects": [
+    {
+      "name": "MedView iOS DICOM Viewer",
+      "role": "Architecture and Implementation",
+      "period": "2026",
+      "description": "Overview: A native iOS DICOM viewer built on DCMTK 3.6.8 for mobile image review on iPhone and iPad, covering the complete patient, study, series, instance and multi-frame hierarchy.\n\nResponsibilities: Designed the Swift and UIKit application architecture, bridged the DCMTK decoding layer through Objective-C++, and implemented Metal rendering, window/level controls, image transforms, measurement annotations, file import and image export.\n\nCore features:\n- Metal GPU rendering for 16-bit grayscale and 8-bit RGB images\n- Single-file multi-frame and multi-file single-frame navigation, series switching and Cine playback\n- Length, angle, elliptical ROI and text annotations with PixelSpacing-based physical measurements\n- Window/level presets, zoom, pan, rotation, flip, inversion and orientation markers\n- PNG, JPEG, image-sequence and original DICOM export\n\nHighlights: Maintains clean boundaries between the Swift UI, Objective-C++ bridge and DCMTK decoder. Real-time window/level mapping and transform matrices run on the GPU, with support for 10 common DICOM transfer syntaxes including JPEG-LS and JPEG 2000.",
+      "tech": [
+        "Swift 5.9",
+        "UIKit",
+        "Metal",
+        "DCMTK 3.6.8",
+        "Objective-C++",
+        "DICOM",
+        "Core Graphics",
+        "XCTest"
+      ],
+      "link": "https://github.com/LeelooDev/DicomView",
+      "coverUrl": "/images/project-medical-imaging-viewer-cover.webp"
+    },
+    {
+      "name": "Local Knowledge Agent",
+      "role": "Solo Architecture and Development",
+      "period": "2026",
+      "description": "Overview: A macOS knowledge-base application that keeps all data on device. After the user selects a local document directory, an Agent can search, read, retry and answer with exact line-level citations.\n\nResponsibilities: Designed and implemented the Electron desktop app, SQLite data layer, document ingestion, hybrid retrieval, Agent tool contract, citation validation, evaluation system and packaging pipeline.\n\nCore features:\n- SQLite FTS5 / BM25 with CJK unigram keyword retrieval\n- Local multilingual-e5-small embeddings, RRF fusion and a local reranker\n- Four read-only knowledge tools for search, reading, outlines and file listing, selected autonomously by the Agent\n- Markdown, TXT, PDF, DOCX, XLSX, PPTX, HTML and common image ingestion\n- A unified line-number citation contract across different source coordinate systems, with deterministic evidence validation\n- Evaluation gates for retrieval, citations, tool budgets and multi-format regressions\n\nHighlights: Multi-format ingestion changed 157 files and 8,600+ lines while preserving the retrieval layer and citation contract. The regression suite retained 34 / 34 gate passes, and lazy loading reduced the background entry bundle from 14.25 MB to 311 KB.",
+      "tech": [
+        "Electron",
+        "TypeScript",
+        "SQLite FTS5",
+        "Agentic RAG",
+        "Embeddings",
+        "RRF / Reranking",
+        "OCR",
+        "Evaluation"
+      ],
+      "link": "/posts/personal-agent-from-scratch-01",
+      "coverUrl": "/images/cover-personal-agent-01.jpeg"
+    },
     {
       "name": "iOS Bluetooth Formaldehyde Monitor",
       "role": "Core iOS Development",
@@ -160,74 +196,80 @@
   ],
   "skills": [
     {
-      "category": "iOS Development",
+      "category": "iOS & Apple Platforms",
       "items": [
-        "Objective-C",
         "Swift",
-        "SwiftUI",
+        "Objective-C",
         "UIKit",
+        "SwiftUI",
+        "CoreBluetooth",
+        "Metal",
         "WKWebView",
-        "App Store Delivery",
-        "In-App Purchase",
-        "WeChat Login"
-      ]
-    },
-    {
-      "category": "AI-assisted Development",
-      "items": [
-        "Vibe Coding",
-        "Cursor",
-        "Claude Code",
-        "ChatGPT",
-        "Prompt Engineering",
-        "AI Agents",
-        "Development Automation"
-      ]
-    },
-    {
-      "category": "Full-stack Development",
-      "items": [
-        "React",
-        "Next.js",
-        "TypeScript",
-        "Tailwind CSS",
-        "Node.js",
-        "REST API",
-        "Database Design"
-      ]
-    },
-    {
-      "category": "Product Design",
-      "items": [
-        "UI/UX Design",
-        "Figma",
-        "Interaction Design",
-        "Design Systems",
-        "Product Prototyping",
-        "Personal Knowledge Systems"
+        "XCTest",
+        "App Store Delivery"
       ]
     },
     {
       "category": "Medical Imaging",
       "items": [
         "DICOM",
-        "Medical Imaging Viewers",
-        "Image Retrieval",
-        "Prior Comparison",
-        "3D Views",
-        "AI Imaging Analysis"
+        "DICOMweb",
+        "DCMTK",
+        "Cornerstone3D",
+        "Window / Level",
+        "MPR / Volume Rendering",
+        "Image Measurements",
+        "Clinical Reporting Workflows"
       ]
     },
     {
-      "category": "Engineering Tools",
+      "category": "AI & Knowledge Systems",
       "items": [
-        "Git",
-        "GitHub",
-        "Xcode",
-        "VS Code",
-        "Chrome DevTools",
+        "Agentic RAG",
+        "FTS5 / BM25",
+        "Embeddings",
+        "RRF / Reranking",
+        "Citation Validation",
+        "Evaluation-driven Development",
+        "OCR",
+        "Multi-format Ingestion"
+      ]
+    },
+    {
+      "category": "Full-stack & Realtime Systems",
+      "items": [
+        "React",
+        "TypeScript",
+        "Go",
+        "Node.js",
+        "WebSocket",
+        "REST API",
+        "SQLite / PostgreSQL",
+        "Prometheus"
+      ]
+    },
+    {
+      "category": "Agent Developer Tooling",
+      "items": [
+        "MCP",
+        "Claude Code Plugins",
+        "XcodeBuildMCP",
+        "Browser Automation",
+        "Source-map Diagnostics",
+        "Skill Routing",
+        "Workflow Automation"
+      ]
+    },
+    {
+      "category": "Engineering Delivery",
+      "items": [
+        "Architecture",
+        "Performance & Memory Analysis",
         "Automated Testing",
-        "Deployment"
+        "GitHub Actions",
+        "Observability",
+        "App Store Release",
+        "Technical Documentation"
       ]
     }
   ],
@@ -235,40 +277,65 @@
     {
       "org": "Medical technology company",
       "role": "Imaging Platform Full-stack Engineer",
-      "period": "2023 — Present",
-      "description": "Own the medical imaging viewer and realtime collaboration backend, across web viewer, iOS client and Go services."
+      "period": "2023–Present",
+      "description": "Own imaging review and collaboration capabilities across the platform. Deliver 2D viewing, MPR, volume rendering, AI segmentation results and reporting workflows with React, TypeScript, Cornerstone3D and DICOMweb; build collaboration rooms, operation relay, snapshot synchronization, authentication and Prometheus observability with Go, WebSocket and an actor model."
     },
     {
       "org": "Digital health company",
       "role": "Senior iOS Engineer",
-      "period": "2019 — 2023",
-      "description": "Shipped core modules of online consultation, clinician assistant and MDT collaboration apps."
+      "period": "2019–2023",
+      "description": "Developed core workflows across telemedicine, clinician assistant and MDT collaboration apps: authentication, appointments and order state, WebSocket messaging, APNs, audio/video calls, DICOM image access, report viewing and clinician permissions. Connected the critical path from patient consultation to mobile image review and remote multidisciplinary collaboration."
     },
     {
       "org": "Smart hardware team",
       "role": "iOS Engineer",
-      "period": "2017 — 2019",
-      "description": "Started with a Bluetooth formaldehyde-detection app, wiring hardware, BLE transport and data parsing to the mobile UI."
+      "period": "2017–2019",
+      "description": "Built the core of a Bluetooth formaldehyde-monitoring app. Encapsulated scanning, connection, characteristic I/O, protocol parsing, state presentation and reconnection with CoreBluetooth; handled disabled permissions, connection failures and malformed readings across the full sensor-to-alert path."
     }
   ],
   "education": [],
   "certificates": [],
-  "openSource": [],
+  "openSource": [
+    {
+      "repo": "LeelooDev/DicomView",
+      "description": "A native iOS DICOM viewer built with Swift, UIKit, Metal and DCMTK.",
+      "stars": "",
+      "link": "https://github.com/LeelooDev/DicomView"
+    },
+    {
+      "repo": "LeelooDev/Build-WX-Apps",
+      "description": "MCP and CLI tooling that lets AI assistants build, run, operate and diagnose WeChat Mini Programs.",
+      "stars": "",
+      "link": "https://github.com/LeelooDev/Build-WX-Apps"
+    },
+    {
+      "repo": "LeelooDev/Build-iOS-Apps",
+      "description": "Nine focused skills for iOS builds, Simulator debugging, automated testing, performance and memory analysis.",
+      "stars": "",
+      "link": "https://github.com/LeelooDev/Build-iOS-Apps"
+    },
+    {
+      "repo": "LeelooDev/Build-Web-Apps",
+      "description": "React build and diagnostic tooling for rendering, memory, errors, network, accessibility and state.",
+      "stars": "",
+      "link": "https://github.com/LeelooDev/Build-Web-Apps"
+    }
+  ],
   "awards": [],
   "facts": [],
   "now": {
-    "updatedAt": "2026-07-07",
+    "updatedAt": "2026-08-10",
     "sections": [
       {
         "label": "BUILDING",
         "items": [
           {
-            "title": "MacOazo personal platform",
-            "note": "This site itself — currently refining its bilingual reading experience and personal knowledge workflow."
+            "title": "Local Knowledge Agent",
+            "note": "An Electron and SQLite system that turns local multi-format documents into searchable, citable and evaluable private knowledge."
           },
           {
-            "title": "Imaging collaboration backend",
-            "note": "A Go service that brings realtime collaboration to a medical imaging viewer and is evolving toward multi-instance scaling."
+            "title": "MedView iOS DICOM Viewer",
+            "note": "Continuing to refine DCMTK decoding, Metal rendering, measurements and the mobile image-review experience."
           }
         ]
       },
@@ -276,8 +343,8 @@
         "label": "LEARNING",
         "items": [
           {
-            "title": "AI agent engineering",
-            "note": "From prompts to workflow orchestration, turning daily practices into reusable engineering patterns."
+            "title": "Trustworthy Agent engineering",
+            "note": "Moving Agents from demos toward reliable systems through tool contracts, evidence citations, regression evaluation and observability."
           },
           {
             "title": "WebGPU",

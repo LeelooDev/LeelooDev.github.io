@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import { PostCard } from '../components/PostCard'
 import { ProjectCard } from '../components/ProjectCard'
 import { HomeSkeleton } from '../components/Skeleton'
-import { GradientWaves } from '../components/GradientWaves'
 import { useI18n } from '../i18n'
 import { postDate, readingMinutes, usePosts, useProfile } from '../lib'
 
@@ -120,7 +119,19 @@ function Hero({ profile }: { profile: Profile }) {
 
   return (
     <div className="hero">
-      <GradientWaves />
+      <video
+        className="hero-video"
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="auto"
+        poster="/images/hero-ducks-poster.jpg?v=4k1"
+        aria-hidden="true"
+        tabIndex={-1}
+      >
+        <source src="/videos/hero-ducks.mp4?v=4k1" type="video/mp4" />
+      </video>
       <div className="hero-inner">
         <div className="hero-badge">{profile.title}</div>
         <h1 className="hero-name">{profile.name}</h1>
@@ -148,7 +159,7 @@ export function Timeline({ items }: { items: ProfileExperience[] }) {
           <div className="timeline-year">{item.period.match(/\d{4}/)?.[0] ?? item.period}</div>
           <div className="timeline-rail" />
           <div className="timeline-body">
-            <div className="timeline-title">{item.role}{item.org ? ` — ${item.org}` : ''}</div>
+            <div className="timeline-title">{item.role}{item.org ? ` · ${item.org}` : ''}</div>
             <div className="timeline-text">{item.description}</div>
           </div>
         </div>
