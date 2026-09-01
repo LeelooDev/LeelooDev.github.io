@@ -77,15 +77,29 @@ function SectionLabelSkeleton() {
 export function HomeSkeleton() {
   return (
     <div className="page">
-      {/* 三段占位对应 hero 的徽章 / 名字 / 入口按钮，跟真实版式一样垂直居中排列。 */}
-      <div className="hero">
+      {/* 占位保持超大 hero 的上下标题与中心信息构图，避免内容到达时发生布局跳动。 */}
+      <div className="hero hero-skeleton">
         <div className="hero-inner">
-          <Sk w={168} h={26} r={99} style={{ marginBottom: 22 }} />
-          <Sk w={340} h={84} r={12} style={{ marginBottom: 44 }} />
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-            <Sk w={104} h={36} r={8} />
-            <Sk w={92} h={36} r={8} />
-            <Sk w={92} h={36} r={8} />
+          <div className="hero-topline">
+            <Sk w={132} h={10} />
+            <Sk w={102} h={10} />
+          </div>
+          <div className="hero-skeleton-name" aria-hidden="true">
+            <Sk w="34vw" h="14vw" r={18} />
+            <Sk w="43vw" h="14vw" r={18} />
+          </div>
+          <div className="hero-copy">
+            <Sk w={260} h={12} style={{ marginBottom: 18 }} />
+            <Sk w={340} h={18} style={{ marginBottom: 30 }} />
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+              <Sk w={104} h={36} r={8} />
+              <Sk w={92} h={36} r={8} />
+              <Sk w={92} h={36} r={8} />
+            </div>
+          </div>
+          <div className="hero-bottomline">
+            <Sk w={116} h={10} />
+            <Sk w={154} h={10} />
           </div>
         </div>
       </div>

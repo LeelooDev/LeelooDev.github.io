@@ -26,7 +26,7 @@ export function HomePage() {
       {profile.data ? <Hero profile={profile.data} /> : null}
 
       {featured ? (
-        <section className="section">
+        <section className="section" id="featured-writing">
           <div className="section-label">{t('featuredWriting')}</div>
           <Link className="featured-card" to={`/posts/${featured.slug}`}>
             <div className="featured-body">
@@ -114,29 +114,55 @@ export function HomePage() {
 }
 
 function Hero({ profile }: { profile: Profile }) {
-  const { t } = useI18n()
+  const { lang, t } = useI18n()
   const emailContact = profile.contacts.find((contact) => contact.url.startsWith('mailto:'))
   const otherContacts = profile.contacts.filter((contact) => !contact.url.startsWith('mailto:'))
+  const nextCapital = profile.name.slice(1).search(/[A-Z]/)
+  const nameBreak = nextCapital >= 0 ? nextCapital + 1 : -1
+  const nameStart = nameBreak > 0 ? profile.name.slice(0, nameBreak) : profile.name
+  const nameEnd = nameBreak > 0 ? profile.name.slice(nameBreak) : ''
 
   return (
-    <div className="hero">
+    <section className="hero" aria-labelledby="home-hero-title">
       <GradientWaves />
+      <div className="hero-atmosphere" aria-hidden="true" />
       <div className="hero-inner">
-        <div className="hero-badge">{profile.title}</div>
-        <h1 className="hero-name">{profile.name}</h1>
-        <div className="hero-actions">
-          <Link className="btn-primary" to="/about">{t('aboutMe')}</Link>
-          {otherContacts.map((contact) => (
-            <a key={contact.url} className="btn-outline" href={contact.url} target="_blank" rel="noreferrer">
-              {contact.label || contact.type}
-            </a>
-          ))}
-          {emailContact ? (
-            <a className="btn-outline" href={emailContact.url}>{emailContact.label || t('emailFallback')}</a>
+        <div className="hero-topline" aria-hidden="true">
+          <span>{lang === 'zh' ? '向下滚动 · 开始探索' : 'SCROLL TO EXPLORE'}</span>
+          <span>PORTFOLIO / 2026</span>
+        </div>
+
+        <h1 id="home-hero-title" className="hero-name" aria-label={profile.name}>
+          <span className="hero-name-line hero-name-line-start" aria-hidden="true">{nameStart}</span>
+          {nameEnd ? (
+            <span className="hero-name-line hero-name-line-end" aria-hidden="true">{nameEnd}</span>
           ) : null}
+        </h1>
+
+        <div className="hero-copy">
+          <div className="hero-badge">{profile.title}</div>
+          <p className="hero-headline">{profile.headline}</p>
+          <div className="hero-actions">
+            <Link className="btn-primary" to="/about">{t('aboutMe')}</Link>
+            {otherContacts.map((contact) => (
+              <a key={contact.url} className="btn-outline" href={contact.url} target="_blank" rel="noreferrer">
+                {contact.label || contact.type}
+              </a>
+            ))}
+            {emailContact ? (
+              <a className="btn-outline" href={emailContact.url}>{emailContact.label || t('emailFallback')}</a>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="hero-bottomline">
+          <span>{profile.location}</span>
+          <a href="#featured-writing">
+            {lang === 'zh' ? '浏览精选文章' : 'VIEW FEATURED WORK'} <span aria-hidden="true">↓</span>
+          </a>
         </div>
       </div>
-    </div>
+    </section>
   )
 }
 
